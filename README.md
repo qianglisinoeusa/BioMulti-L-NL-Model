@@ -2,10 +2,8 @@
 
 The biological possible multi-layer linear+nonlinear visual information processing model
 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                      DigitialBrain Version 3.0
-                          Visual Computing
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+DigitialBrain Version 3.0
+Visual Computing
 
 Human visual inspired multi-layer LNL model. In this model, the main 
 component are:
@@ -27,11 +25,6 @@ performance Computer(HPC) with big framework architecture(C/C++/Java).
 The Python version model inspired by matlab version. The matlab version also
 get under request.
 
-
-Copyright(c)  Qiang Li, 2020, Valencia, Spain
-All Rights Reserved.
-qiang.li@@uv.es/ liqiangucas@@outlook.com
-Distributed under the (new) BSD License.
 ----------------------------------------------------------------------
 Permission to use, copy, or modify this software and its documentation
 for educational and research purposes only and without fee is here
@@ -42,11 +35,4 @@ software or hardware product without first obtaining permission of the
 authors. The authors make no representations about the suitability of
 this software for any purpose. It is provided "as is" without express
 or implied warranty.
-
-
-References:
-
-[1]. coming soon.
-[2]. ......
-
 
