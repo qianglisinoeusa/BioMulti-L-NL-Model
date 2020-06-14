@@ -1,4 +1,4 @@
-### 1. BioMulti-L-NL-Model
+### BioMulti-L-NL-Model
 
 The biological possible multi-layer linear+nonlinear visual information processing model
 
@@ -21,30 +21,34 @@ simulate of primate brain, we need to implement all everything to High
 performance Computer(HPC) with big framework architecture(C/C++/Java).
  
 
-The Python version model inspired by matlab version.
+#### Python Alpha Version
 
 
-### 2. How to use it
 
-@ caution: The code only can execute under conda envionment or virtual environment, otherwise,
-it will cause errors.
+1. How to execute it
 
- 
-Pytorch only works under the virtual environment.
+@caution: The code only can execute under conda envionment or virtual environment, otherwise,
+it will cause errors. Pytorch only works under the virtual environment.<br/>
 
-1. option1: 
+option 1: <br/>
 
 source ~/.bashrc : (base) this conda environment.<br/>
 conda deactivate : quit conda environment. <br/>
 
-2. option2:
+
+option 2:<br/>
 
 cd virutal environment. <br/>
 python3 -m venv pytorch-BioMulti-L-NL <br/>  
 source pytorch-BioMulti-L-NL/bin/activate <br/>
 deactivate <br/>
 
-Other requierment toolboxes(see requirements.txt):<br/>
+
+Run InstallDepedendent.sh to download and install dependent toolboxes.<br/>
+Run main.sh to execute main funtion.<br/>
+
+
+2. Requierment toolboxes(see requirements.txt):<br/>
 
 numpy<br/>
 NeuroTools<br/>
@@ -65,10 +69,7 @@ LogGabor<br/>
 nt_toolbox<br/>
 
 
-1. First, run InstallDepedendent.sh to download and install dependent toolboxes.
-2. Second, run main.sh to execute main funtion.
-
-### Matlab Version
+#### Matlab Alpha Version
 
 1. Dependent toolboxes
 
