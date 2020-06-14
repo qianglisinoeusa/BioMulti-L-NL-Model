@@ -21,8 +21,7 @@ simulate of primate brain, we need to implement all everything to High
 performance Computer(HPC) with big framework architecture(C/C++/Java).
  
 
-The Python version model inspired by matlab version. The matlab version also
-get under request.
+The Python version model inspired by matlab version.
 
 
 ### 2. How to use it
@@ -69,6 +68,22 @@ nt_toolbox<br/>
 1. First, run InstallDepedendent.sh to download and install dependent toolboxes.
 2. Second, run main.sh to execute main funtion.
 
+### Matlab Version
+
+1. Dependent toolboxes
+
+[matlabPyrtools](https://github.com/LabForComputationalVision/matlabPyrTools)<br/>
+ColorE<br/>
+Hdrvdp<br/>
+BioMulti-L-NL-Model<br/>
+[TID2008 database](http://www.ponomarenko.info/tid2008.htm)<br/>
+
+2. How to run it
+
+TID2008.m: evaluate LNL model with TID2008 dataset.<br/>
+The main function will call RLV.m and simple_model_rlv.m function from the path then plot the results. <br/>
+
+The parameters still can optimize in the future.
 ----------------------------------------------------------------------
 Permission to use, copy, or modify this software and its documentation
 for educational and research purposes only and without fee is here
