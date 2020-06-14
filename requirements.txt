@@ -1,0 +1,17 @@
+numpy
+NeuroTools
+statsmodels
+pyrtools
+MotionClouds
+tensorflow
+pytorch
+PyWavelets
+colour-science
+scipy
+opencv
+SLIP
+PyTorchSteerablePyramid
+PIL
+tqdm
+LogGabor
+nt_toolbox

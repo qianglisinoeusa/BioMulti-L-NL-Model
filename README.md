@@ -31,9 +31,42 @@ get under request.
 @ caution: The code only can execute under conda envionment or virtual environment, otherwise,
 it will cause errors.
 
+Install pytorch
+ 
+Pytorch only works under the virtual environment.
+
+   option1: source ~/.bashrc : (base) this conda environment.  
+            conda deactivate : quit conda environment. 
+   option2: mkdir virutal environment.
+            cd virutal environment.
+            python3 -m venv pytorch-BioMulti-L-NL  
+            -------------------------------------------------
+            source pytorch-BioMulti-L-NL/bin/activate
+            deactivate 
+
+Other requierment toolboxes(see requirements.txt):
+
+numpy
+NeuroTools
+statsmodels
+pyrtools
+MotionClouds
+tensorflow
+pytorch
+PyWavelets
+colour-science
+scipy
+opencv
+SLIP
+PyTorchSteerablePyramid
+PIL
+tqdm
+LogGabor
+nt_toolbox
+
+
 a. First, run InstallDepedendent.sh to download and install dependent toolboxes.
 b. Second, run main.sh to execute main funtion.
-
 
 ----------------------------------------------------------------------
 Permission to use, copy, or modify this software and its documentation
