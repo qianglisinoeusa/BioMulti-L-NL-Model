@@ -1,9 +1,8 @@
-# 1. BioMulti-L-NL-Model
+### 1. BioMulti-L-NL-Model
 
 The biological possible multi-layer linear+nonlinear visual information processing model
 
-DigitialBrain Version 3.0(Complex and Test Version)
-Visual Computing
+Digitial Brain Visual Computing Version 3.0(Complex and Test Version)
 
 Human visual inspired multi-layer LNL model. In this model, the main 
 component are:
@@ -26,23 +25,25 @@ The Python version model inspired by matlab version. The matlab version also
 get under request.
 
 
-# 2. How to use it
+### 2. How to use it
 
 @ caution: The code only can execute under conda envionment or virtual environment, otherwise,
 it will cause errors.
 
-Install pytorch
  
 Pytorch only works under the virtual environment.
 
-   option1: source ~/.bashrc : (base) this conda environment.  
-            conda deactivate : quit conda environment. 
-   option2: mkdir virutal environment.
-            cd virutal environment.
-            python3 -m venv pytorch-BioMulti-L-NL  
-            -------------------------------------------------
-            source pytorch-BioMulti-L-NL/bin/activate
-            deactivate 
+1. option1: 
+
+source ~/.bashrc : (base) this conda environment.
+conda deactivate : quit conda environment. 
+
+2. option2:
+
+cd virutal environment.
+python3 -m venv pytorch-BioMulti-L-NL  
+source pytorch-BioMulti-L-NL/bin/activate
+deactivate 
 
 Other requierment toolboxes(see requirements.txt):
 
@@ -65,8 +66,8 @@ LogGabor
 nt_toolbox
 
 
-a. First, run InstallDepedendent.sh to download and install dependent toolboxes.
-b. Second, run main.sh to execute main funtion.
+1. First, run InstallDepedendent.sh to download and install dependent toolboxes.
+2. Second, run main.sh to execute main funtion.
 
 ----------------------------------------------------------------------
 Permission to use, copy, or modify this software and its documentation
