@@ -35,35 +35,35 @@ Pytorch only works under the virtual environment.
 
 1. option1: 
 
-source ~/.bashrc : (base) this conda environment.
-conda deactivate : quit conda environment. 
+source ~/.bashrc : (base) this conda environment.<br/>
+conda deactivate : quit conda environment. <br/>
 
 2. option2:
 
-cd virutal environment.
-python3 -m venv pytorch-BioMulti-L-NL  
-source pytorch-BioMulti-L-NL/bin/activate
-deactivate 
+cd virutal environment. <br/>
+python3 -m venv pytorch-BioMulti-L-NL <br/>  
+source pytorch-BioMulti-L-NL/bin/activate <br/>
+deactivate <br/>
 
-Other requierment toolboxes(see requirements.txt):
+Other requierment toolboxes(see requirements.txt):<br/>
 
-numpy
-NeuroTools
-statsmodels
-pyrtools
-MotionClouds
-tensorflow
-pytorch
-PyWavelets
-colour-science
-scipy
-opencv
-SLIP
-PyTorchSteerablePyramid
-PIL
-tqdm
-LogGabor
-nt_toolbox
+numpy<br/>
+NeuroTools<br/>
+statsmodels<br/>
+pyrtools<br/>
+MotionClouds<br/>
+tensorflow<br/>
+pytorch<br/>
+PyWavelets<br/>
+colour-science<br/>
+scipy<br/>
+opencv<br/>
+SLIP<br/>
+PyTorchSteerablePyramid<br/>
+PIL<br/>
+tqdm<br/>
+LogGabor<br/>
+nt_toolbox<br/>
 
 
 1. First, run InstallDepedendent.sh to download and install dependent toolboxes.
