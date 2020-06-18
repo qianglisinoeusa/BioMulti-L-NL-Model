@@ -2,7 +2,7 @@
 
 The biological possible multi-layer linear+nonlinear visual information processing model
 
-Digitial Brain Visual Computing Version 3.0(Complex and Test Version)
+Digitial Brain Visual Computing Version 2.0(Complex and Alpha Version)
 
 Human visual inspired multi-layer LNL model. In this model, the main 
 component are:
@@ -46,6 +46,13 @@ deactivate <br/>
 
 Run InstallDepedendent.sh to download and install dependent toolboxes.<br/>
 Run main.sh to execute main funtion.<br/>
+
+#### Python Beta Version
+
+The beta version running environment same with alpha version.<br/>
+
+Run main.sh under bash environment.<br/>
+
 
 
 2. Requierment toolboxes(see requirements.txt):<br/>

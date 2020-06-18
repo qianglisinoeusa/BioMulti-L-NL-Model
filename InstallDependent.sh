@@ -50,7 +50,7 @@ sudo pip3 install scipy
 #sudo python -m pip3 install scipy
 #sudo apt-get install python3-scipy
 sudo pip3 install opencv-python
-
+sudo pip3 install sliding_window
 
 # numpy
 # scipy
