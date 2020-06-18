@@ -88,6 +88,14 @@ from tqdm import trange
 
 import pywt
 import colour
+from scipy import io
+import sliding_window as sw
+import matplotlib.gridspec as gridspec
+from operator import sub
+from mpl_toolkits import axes_grid1
+from tqdm import tqdm_notebook as tqdm
+from tqdm import trange
+
 #%tensorflow_version 1x
 import tensorflow as tf
 from pywt._doc_utils import wavedec2_keys, draw_2d_wp_basis
@@ -1211,89 +1219,93 @@ def SFF(Ir, Id):
 
   return dor, dw, dwf, dwfs, dwfsn
 
-mos = io.loadmat('drive/My Drive/TID2008/TID2008.mat')
-print(len((mos['tid_MOS'])))
-tid_MOS = mos['tid_MOS']
 
-ScoreSingle = np.zeros([68, 1])
-iPoint = 0
+###############################################################################################################
+if __name__ is '__main__':
 
-expo = 2.2 
-expo = 1  
+  mos = io.loadmat('/home/qiang/QiangLi/Python_Utils_Functional/FirstVersion-BioMulti-L-NL-Model-ongoing/TID2008/TID2008.mat')
+  print(len((mos['tid_MOS'])))
+  tid_MOS = mos['tid_MOS']
 
-param_n = 256
+  ScoreSingle = np.zeros([68, 1])
+  iPoint = 0
 
-indices = []
+  expo = 2.2 
+  expo = 1  
 
-for iRef in range(2, 3):
-  imNameRef = str("{:02d}".format(iRef))
-  print(imNameRef)
-  Ir = imread(os.path.join('drive/My Drive/TID2008/reference_images/I' + imNameRef + '.BMP'))
-  Ir = resize(Ir, (param_n, param_n))
-  Iro = rgb2gray(np.double(Ir)/255)
-  print(Iro.shape)
-  Ir = np.power(Iro, expo)
-  for iDis in range(1,18):
-    imNameDis = os.path.join('_' + str('{:02d}'.format(iDis)))
-    for iLevel in range(1, 5):
-      index = (iRef-1)*68 + (iDis-1)*4 + iLevel
-      indices.append([iRef, iDis, iLevel, index])
-      print('The index image now is {}'.format(indices))
-      Id = imread(os.path.join('drive/My Drive/TID2008/distorted_images/I' + imNameRef + imNameDis + '_' + str(iLevel) + '.bmp'))
-      Id = resize(Id, (param_n, param_n))
-      Ido=rgb2gray(np.double(Id)/255)
-      print(Ido.shape)
-      Id=np.power(Ido, expo)
-      start = time.time()
-      dor[iPoint], dw[iPoint], dwf[iPoint], dwfs[iPoint], dwfsn[iPoint] = SFF(Ir,Id)
-      print('Time consume: {:02d}'.format(time.time() - start))
-      iPoint = iPoint + 1
-      
-indi = indices[0][0] != 0                            
+  param_n = 256
 
-SB = tid_MOS[indices[indi:]].T
+  indices = []
 
-##################################################
-#Visualization 
-##################################################
-plt.figure(figsize=(15,12))
-plt.subplots_adjust(wspace=0.3, hspace=0)
-plt.margins(0,0)
+  for iRef in range(2, 3):
+    imNameRef = str("{:02d}".format(iRef))
+    print(imNameRef)
+    Ir = imread(os.path.join('/home/qiang/QiangLi/Python_Utils_Functional/FirstVersion-BioMulti-L-NL-Model-ongoing/TID2008/reference_images/I' + imNameRef + '.BMP'))
+    Ir = resize(Ir, (param_n, param_n))
+    Iro = rgb2gray(np.double(Ir)/255)
+    print(Iro.shape)
+    Ir = np.power(Iro, expo)
+    for iDis in range(1,18):
+      imNameDis = os.path.join('_' + str('{:02d}'.format(iDis)))
+      for iLevel in range(1, 5):
+        index = (iRef-1)*68 + (iDis-1)*4 + iLevel
+        indices.append([iRef, iDis, iLevel, index])
+        print('The index image now is {}'.format(indices))
+        Id = imread(os.path.join('/home/qiang/QiangLi/Python_Utils_Functional/FirstVersion-BioMulti-L-NL-Model-ongoing/TID2008/distorted_images/I' + imNameRef + imNameDis + '_' + str(iLevel) + '.bmp'))
+        Id = resize(Id, (param_n, param_n))
+        Ido=rgb2gray(np.double(Id)/255)
+        print(Ido.shape)
+        Id=np.power(Ido, expo)
+        start = time.time()
+        dor[iPoint], dw[iPoint], dwf[iPoint], dwfs[iPoint], dwfsn[iPoint] = SFF(Ir,Id)
+        print('Time consume: {:02d}'.format(time.time() - start))
+        iPoint = iPoint + 1
+        
+  indi = indices[0][0] != 0                            
 
-OB = dor[indi]                
-metric_1 = np.corrcoef(SB, OB) 
-plt.subplot(141)
-plt.scatter(SB, OB, 'b.')
-plt.axis('equal')
-plt.title('r = {}'.format(metric_1))
+  SB = tid_MOS[indices[indi:]].T
 
-OB = dw[indi]                
-metric_2 = np.corrcoef(SB, OB)  
-plt.subplot(142)
-plt.scatter(SB, OB, 'b.')
-plt.axis('equal')
-plt.title('r = {}'.format(metric_2))
+  ##################################################
+  #Visualization 
+  ##################################################
+  plt.figure(figsize=(15,12))
+  plt.subplots_adjust(wspace=0.3, hspace=0)
+  plt.margins(0,0)
 
-OB = dwf[indi]  
-metric_3 = np.corrcoef(SB, OB)  
-plt.subplot(143)
-plt.scatter(SB, OB, 'b.')
-plt.axis('equal')
-plt.title('r = {}'.format(metric_3))
+  OB = dor[indi]                
+  metric_1 = np.corrcoef(SB, OB) 
+  plt.subplot(141)
+  plt.scatter(SB, OB, 'b.')
+  plt.axis('equal')
+  plt.title('r = {}'.format(metric_1))
 
-OB = dwfs[indi]  
-metric_4 = np.corrcoef(SB, OB)  
-plt.subplot(144)
-plt.scatter(SB, OB, 'b.')
-plt.axis('equal')
-plt.title('r = {}'.format(metric_4))
+  OB = dw[indi]                
+  metric_2 = np.corrcoef(SB, OB)  
+  plt.subplot(142)
+  plt.scatter(SB, OB, 'b.')
+  plt.axis('equal')
+  plt.title('r = {}'.format(metric_2))
 
-OB = dwfsn[indi]  
-metric_5 = np.corrcoef(SB, OB)  
-plt.subplot(145)
-plt.scatter(SB, OB, 'b.')
-plt.axis('equal')
-plt.title('r = {}'.format(metric_5))
+  OB = dwf[indi]  
+  metric_3 = np.corrcoef(SB, OB)  
+  plt.subplot(143)
+  plt.scatter(SB, OB, 'b.')
+  plt.axis('equal')
+  plt.title('r = {}'.format(metric_3))
 
-plt.tight_layout()
-plt.show()
+  OB = dwfs[indi]  
+  metric_4 = np.corrcoef(SB, OB)  
+  plt.subplot(144)
+  plt.scatter(SB, OB, 'b.')
+  plt.axis('equal')
+  plt.title('r = {}'.format(metric_4))
+
+  OB = dwfsn[indi]  
+  metric_5 = np.corrcoef(SB, OB)  
+  plt.subplot(145)
+  plt.scatter(SB, OB, 'b.')
+  plt.axis('equal')
+  plt.title('r = {}'.format(metric_5))
+
+  plt.tight_layout()
+  plt.show()
