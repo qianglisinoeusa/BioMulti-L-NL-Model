@@ -1,5 +1,9 @@
 ### BioMulti-L-NL-Model
 
+
+![mathmatics neuroscience](imgs/mathmatics Neuroscience.jpg)
+<br/>
+
 The biological possible multi-layer linear+nonlinear visual information processing model
 
 Digitial Brain Visual Computing Version 2.0(Complex and Alpha Version)
