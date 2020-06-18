@@ -1,8 +1,7 @@
 ### BioMulti-L-NL-Model
 
 
-![mathmatics neuroscience](imgs/mathmatics Neuroscience.jpg)
-<br/>
+<img width=300 src='imgs/mathmatics Neuroscience.jpg'><br/>
 
 The biological possible multi-layer linear+nonlinear visual information processing model
 
