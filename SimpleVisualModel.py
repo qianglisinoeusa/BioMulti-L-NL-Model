@@ -966,7 +966,7 @@ def im2col_sliding_strided(img, block_size, stepsize=1):
     return out_view.reshape(block_size[0]*block_size[1],-1)[:,::stepsize]
 
 
-def SimpleVisualModel(img):
+def SimpleVisualModel_Beta(img):
   '''
   Human visual inspired multi-layer LNL model. In this model, the main component
   are:
@@ -1168,8 +1168,8 @@ def SFF(Ir, Id):
     patches_r = np.reshape(patches_r_r[:,p],[param_N, param_N])
     patches_d = np.reshape(patches_d_d[:,p],[param_N, param_N])
 
-    w, wf, ws, wsn  = SimpleVisualModel(patches_r) 
-    wd, wfd, wsd, wsnd = SimpleVisualModel(patches_d)
+    w, wf, ws, wsn  = SimpleVisualModel_Beta(patches_r) 
+    wd, wfd, wsd, wsnd = SimpleVisualModel_Beta(patches_d)
 
     global D, DF, DFS, DFSN
 
@@ -1183,6 +1183,7 @@ def SFF(Ir, Id):
       DF = np.zeros((len(w),len(patches_r[0,:])))
       DFS = np.zeros((len(w),len(patches_r[0,:])))
       DFSN = np.zeros((len(w),len(patches_r[0,:])))
+      
       D = map(sub, w, wd)
       for x1 in D:
           D_up.append(x1)
@@ -1211,21 +1212,23 @@ def SFF(Ir, Id):
    
     sum_exponent = 2
     
-    dor =  np.sqrt(np.sum(np.power(np.abs(Ir[:] - Id[:]), 2)))
+    #dor =  np.sqrt(np.sum(np.power(np.abs(Ir[:] - Id[:]), 2)))
+    dr =  np.sqrt(np.sum(np.power(np.abs(patches_r[:] - patches_d[:]), 2)))
     dw =  np.power(np.sum(np.concatenate(np.power(np.abs(D_up[:]), sum_exponent))), (1/sum_exponent))
     dwf =  np.power(np.sum(np.concatenate(np.power(np.abs(DF_up[:]), sum_exponent))), (1/sum_exponent))
     dwfs =  np.power(np.sum(np.concatenate(np.power(np.abs(DFS_up[:]), sum_exponent))), (1/sum_exponent))
     dwfsn =  np.power(np.sum(np.power(np.abs(DFSN_up[:]), sum_exponent)), (1/sum_exponent))
 
-  return dor, dw, dwf, dwfs, dwfsn
+  return dr, dw, dwf, dwfs, dwfsn
 
 
 ###############################################################################################################
-if __name__ is '__main__':
+if __name__ == '__main__':
 
   mos = io.loadmat('/home/qiang/QiangLi/Python_Utils_Functional/FirstVersion-BioMulti-L-NL-Model-ongoing/TID2008/TID2008.mat')
   print(len((mos['tid_MOS'])))
   tid_MOS = mos['tid_MOS']
+
 
   ScoreSingle = np.zeros([68, 1])
   iPoint = 0
@@ -1257,7 +1260,7 @@ if __name__ is '__main__':
         print(Ido.shape)
         Id=np.power(Ido, expo)
         start = time.time()
-        dor[iPoint], dw[iPoint], dwf[iPoint], dwfs[iPoint], dwfsn[iPoint] = SFF(Ir,Id)
+        do[iPoint], dw[iPoint], dwf[iPoint], dwfs[iPoint], dwfsn[iPoint] = SFF(Ir,Id)
         print('Time consume: {:02d}'.format(time.time() - start))
         iPoint = iPoint + 1
         
@@ -1308,4 +1311,5 @@ if __name__ is '__main__':
   plt.title('r = {}'.format(metric_5))
 
   plt.tight_layout()
-  plt.show()
+
+plt.show()
