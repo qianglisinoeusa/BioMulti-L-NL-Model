@@ -1161,8 +1161,8 @@ def SFF(Ir, Id):
   '''
   param_N = 128
   
-  patches_r_r = im2col_sliding_strided(Ir, [param_N, param_N], stepsize=8)
-  patches_d_d = im2col_sliding_strided(Id, [param_N, param_N], stepsize=8)
+  patches_r_r = im2col_sliding_strided(Ir, [param_N, param_N], stepsize=64)
+  patches_d_d = im2col_sliding_strided(Id, [param_N, param_N], stepsize=64)
 
   for p in range(len(patches_r_r[0,:])):
     patches_r = np.reshape(patches_r_r[:,p],[param_N, param_N])
@@ -1235,12 +1235,18 @@ if __name__ == '__main__':
 
   expo = 2.2 
   expo = 1  
-
   param_n = 256
 
   indices = []
 
-  for iRef in range(2, 3):
+  drq = []
+  dwq = []
+  dwfq = []
+  dwfsq = []
+  dwfsnq = []
+  
+  start = time.time()
+  for iRef in range(1,14):
     imNameRef = str("{:02d}".format(iRef))
     print(imNameRef)
     Ir = imread(os.path.join('/home/qiang/QiangLi/Python_Utils_Functional/FirstVersion-BioMulti-L-NL-Model-ongoing/TID2008/reference_images/I' + imNameRef + '.BMP'))
@@ -1259,51 +1265,66 @@ if __name__ == '__main__':
         Ido=rgb2gray(np.double(Id)/255)
         print(Ido.shape)
         Id=np.power(Ido, expo)
-        start = time.time()
-        do[iPoint], dw[iPoint], dwf[iPoint], dwfs[iPoint], dwfsn[iPoint] = SFF(Ir,Id)
-        print('Time consume: {:02d}'.format(time.time() - start))
-        iPoint = iPoint + 1
-        
+        #dr[iPoint], dw[iPoint], dwf[iPoint], dwfs[iPoint], dwfsn[iPoint] = SFF(Ir,Id)
+        dr, dw, dwf, dwfs, dwfsn = SFF(Ir,Id)
+        drq.append(dr)
+        dwq.append(dw)
+        dwfq.append(dwf)
+        dwfsq.append(dwfs)
+        dwfsnq.append(dwfsn)
+  
+  print('Time Taken: {:.2f}'.format(time.time() - start))      
+  
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/indicesa', indices)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/drqa', drq)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwqa', dwq)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwfqa', dwfq)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwfsqa', dwfsq)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwfsnqa', dwfsnq)
+  
+'''
+  ####################################################################################################
+  # The result visualization with plot_corr_mos.py
+  ####################################################################################################
   indi = indices[0][0] != 0                            
-
   SB = tid_MOS[indices[indi:]].T
 
   ##################################################
   #Visualization 
   ##################################################
-  plt.figure(figsize=(15,12))
+  plt.figure(figsize=(15,12), dpi=144)
   plt.subplots_adjust(wspace=0.3, hspace=0)
   plt.margins(0,0)
 
-  OB = dor[indi]                
+  OB = drq[indi]                
   metric_1 = np.corrcoef(SB, OB) 
   plt.subplot(141)
   plt.scatter(SB, OB, 'b.')
   plt.axis('equal')
   plt.title('r = {}'.format(metric_1))
 
-  OB = dw[indi]                
+  OB = dwq[indi]                
   metric_2 = np.corrcoef(SB, OB)  
   plt.subplot(142)
   plt.scatter(SB, OB, 'b.')
   plt.axis('equal')
   plt.title('r = {}'.format(metric_2))
 
-  OB = dwf[indi]  
+  OB = dwfq[indi]  
   metric_3 = np.corrcoef(SB, OB)  
   plt.subplot(143)
   plt.scatter(SB, OB, 'b.')
   plt.axis('equal')
   plt.title('r = {}'.format(metric_3))
 
-  OB = dwfs[indi]  
+  OB = dwfsq[indi]  
   metric_4 = np.corrcoef(SB, OB)  
   plt.subplot(144)
   plt.scatter(SB, OB, 'b.')
   plt.axis('equal')
   plt.title('r = {}'.format(metric_4))
 
-  OB = dwfsn[indi]  
+  OB = dwfsnq[indi]  
   metric_5 = np.corrcoef(SB, OB)  
   plt.subplot(145)
   plt.scatter(SB, OB, 'b.')
@@ -1313,3 +1334,4 @@ if __name__ == '__main__':
   plt.tight_layout()
 
 plt.show()
+'''
