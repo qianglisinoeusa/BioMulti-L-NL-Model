@@ -13,4 +13,4 @@ SBATCH --exclude=nodo17
 module load Anaconda3
 source activate your_virtual_environment
  
-python -u SimpleVisualModel.py
+python -u  BioMulti_L_NL_Model_Sample.py

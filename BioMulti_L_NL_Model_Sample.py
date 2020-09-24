@@ -999,7 +999,7 @@ def SimpleVisualModel_Beta(img):
   # Main section 
   ############################################################################
   noise_types=['Gaussian', 'Possion']
-  noise_type=noise_types[1]
+  noise_type=noise_types[0]
   expont = 2.2
   ############################################################################
   #Load image and preprocess
@@ -1123,6 +1123,7 @@ def SimpleVisualModel_Beta(img):
       f_gaussian_sp_p = DN_band_sp[p]*np.random.standard_normal(DN_band_sp[p].shape)
       f_gaussian_sp_p = np.asarray(f_gaussian_sp_p.reshape(f_gaussian_sp_p.shape[0]*f_gaussian_sp_p.shape[1]))
       f_gaussian_sp.append(f_gaussian_sp_p)
+  
   return imgCoeffs_Iwant, Dis_CSF_wavelets_vis_sp, Dis_DN_band_sp, f_gaussian_sp 
   
   #Possion
@@ -1171,7 +1172,10 @@ def SFF(Ir, Id):
     w, wf, ws, wsn  = SimpleVisualModel_Beta(patches_r) 
     wd, wfd, wsd, wsnd = SimpleVisualModel_Beta(patches_d)
 
-    global D, DF, DFS, DFSN
+    global D
+    global DF 
+    global DFS 
+    global DFSN
 
     D_up = []
     DF_up = []
@@ -1213,11 +1217,11 @@ def SFF(Ir, Id):
     sum_exponent = 2
     
     #dor =  np.sqrt(np.sum(np.power(np.abs(Ir[:] - Id[:]), 2)))
-    dr =  np.sqrt(np.sum(np.power(np.abs(patches_r[:] - patches_d[:]), 2)))
-    dw =  np.power(np.sum(np.concatenate(np.power(np.abs(D_up[:]), sum_exponent))), (1/sum_exponent))
-    dwf =  np.power(np.sum(np.concatenate(np.power(np.abs(DF_up[:]), sum_exponent))), (1/sum_exponent))
-    dwfs =  np.power(np.sum(np.concatenate(np.power(np.abs(DFS_up[:]), sum_exponent))), (1/sum_exponent))
-    dwfsn =  np.power(np.sum(np.power(np.abs(DFSN_up[:]), sum_exponent)), (1/sum_exponent))
+    dr = np.sqrt(np.sum(np.power(np.abs(patches_r[:] - patches_d[:]), 2)))
+    dw = np.power(np.sum(np.concatenate(np.power(np.abs(D_up[:]), sum_exponent))), (1/sum_exponent))
+    dwf = np.power(np.sum(np.concatenate(np.power(np.abs(DF_up[:]), sum_exponent))), (1/sum_exponent))
+    dwfs = np.power(np.sum(np.concatenate(np.power(np.abs(DFS_up[:]), sum_exponent))), (1/sum_exponent))
+    dwfsn = np.power(np.sum(np.concatenate(np.power(np.abs(DFSN_up[:]), sum_exponent))), (1/sum_exponent))
 
   return dr, dw, dwf, dwfs, dwfsn
 
@@ -1246,7 +1250,7 @@ if __name__ == '__main__':
   dwfsnq = []
   
   start = time.time()
-  for iRef in range(1,14):
+  for iRef in range(2,6):
     imNameRef = str("{:02d}".format(iRef))
     print(imNameRef)
     Ir = imread(os.path.join('/home/qiang/QiangLi/Python_Utils_Functional/FirstVersion-BioMulti-L-NL-Model-ongoing/TID2008/reference_images/I' + imNameRef + '.BMP'))
@@ -1275,12 +1279,12 @@ if __name__ == '__main__':
   
   print('Time Taken: {:.2f}'.format(time.time() - start))      
   
-  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/indicesa', indices)
-  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/drqa', drq)
-  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwqa', dwq)
-  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwfqa', dwfq)
-  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwfsqa', dwfsq)
-  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwfsnqa', dwfsnq)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/indices', indices)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/drq', drq)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwq', dwq)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwfq', dwfq)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwfsq', dwfsq)
+  np.save('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/database/dwfsnq', dwfsnq)
   
 '''
   ####################################################################################################

@@ -23,6 +23,7 @@ or implied warranty.
 import numpy as np
 import matplotlib.pyplot as plt 
 from scipy import io
+import scipy.stats as stats
 
 mos = io.loadmat('/home/qiang/QiangLi/Python_Utils_Functional/FirstVersion-BioMulti-L-NL-Model-ongoing/TID2008/TID2008.mat')
 print(len((mos['tid_MOS'])))
@@ -43,47 +44,58 @@ indi = indices[0][0] != 0
 #print(SB)
 
 SB = tid_MOS[indices.T[3]]
+
 ##################################################
 #Visualization 
 ##################################################
-figure.add_subplot(111, frame_on=False)
-plt.figure(figsize=(12,6), dpi=94)
+plt.figure(figsize=(12,6), dpi=100)
 plt.subplots_adjust(wspace=0.5, hspace=0)
 plt.margins(0,0)
 plt.tick_params(labelcolor="none", bottom=False, left=False)
 
-OB = dr[indi]                
-#metric_1 = np.corrcoef(SB, OB.T) 
+OB = dr                
+metric_1 = stats.spearmanr(SB, OB) 
 plt.subplot(151)
-plt.scatter(SB, OB, c = 'g', cmap='hsv')
-#plt.title('r = {}'.format(metric_1))
-
-OB = dw[indi]                
-#metric_2 = np.corrcoef(SB, OB.T)  
-plt.subplot(152)
-plt.scatter(SB, OB, c = 'g', cmap='hsv')
-#plt.title('r = {}'.format(metric_2))
-
-OB = dwf[indi]  
-#metric_3 = np.corrcoef(SB, OB.T)  
-plt.subplot(153)
-plt.scatter(SB, OB, c = 'g', cmap='hsv')
-#plt.title('r = {}'.format(metric_3))
-
-OB = dwfs[indi]  
-#metric_4 = np.corrcoef(SB, OB.T)  
-plt.subplot(154)
-plt.scatter(SB, OB, c = 'g', cmap='hsv')
-#plt.title('r = {}'.format(metric_4))
-
-OB = dwfsn[indi]  
-#metric_5 = np.corrcoef(SB, OB.T)  
-plt.subplot(155)
-plt.scatter(SB, OB, c = 'g', cmap='hsv')
-#plt.title('r = {}'.format(metric_5))
-
+plt.scatter(SB, OB, c = 'b', cmap='jet')
 plt.xlabel('Mean Opinion Score')
 plt.ylabel('Predict Scores')
-plt.title('Model Evaluate with TID2008')
+plt.ylim([0, np.max(OB)])
+plt.title('r = {:.4f}'.format(metric_1[0]))
+
+OB = dw                
+metric_2 = stats.spearmanr(SB, OB)  
+plt.subplot(152)
+plt.scatter(SB, OB, c = 'b', cmap='jet')
+plt.xlabel('Mean Opinion Score')
+plt.ylabel('Predict Scores')
+plt.ylim([0, np.max(OB)])
+plt.title('r = {:.4f}'.format(metric_2[0]))
+
+OB = dwf  
+metric_3 = stats.spearmanr(SB, OB)  
+plt.subplot(153)
+plt.scatter(SB, OB, c = 'b', cmap='jet')
+plt.xlabel('Mean Opinion Score')
+plt.ylabel('Predict Scores')
+plt.ylim([0, np.max(OB)])
+plt.title('r = {:.4f}'.format(metric_3[0]))
+
+OB = dwfs  
+metric_4 = stats.spearmanr(SB, OB)  
+plt.subplot(154)
+plt.scatter(SB, OB, c = 'b', cmap='jet')
+plt.xlabel('Mean Opinion Score')
+plt.ylabel('Predict Scores')
+plt.ylim([0, np.max(OB)])
+plt.title('r = {:.4f}'.format(metric_4[0]))
+
+OB = dwfsn 
+metric_5 = stats.spearmanr(SB, OB)  
+plt.subplot(155)
+plt.scatter(SB, OB, c = 'b', cmap='jet')
+plt.xlabel('Mean Opinion Score')
+plt.ylabel('Predict Scores')
+plt.ylim([0, np.max(OB)])
+plt.title('r = {:.4f}'.format(metric_5[0]))
 
 plt.show()
