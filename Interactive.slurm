@@ -9,3 +9,12 @@ conda install -c conda-forge hdf5storage
 
 srun --pty -p LADON --mem=240000M -t 220:00:00 -c 46 bash
 python TC_estimate.py 
+
+
+#Matlab
+
+module load MATLAB
+salloc -n 56
+srun --pty -x11 -p LADON -t 200:00:00 --mem 250000M  bash 
+
+matlab -nodsiplay -nosplash -r 
