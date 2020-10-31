@@ -1,0 +1,7 @@
+function [ output_args ] = mapdist( map1, map2 )
+
+    cal
+
+
+end
+

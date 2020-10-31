@@ -1,0 +1,3 @@
+model_checkpoint_path: "deep_gaze2_experiment0010.ckpt"
+all_model_checkpoint_paths: "../../tmp/deep_gaze2_experiment0010.ckpt"
+all_model_checkpoint_paths: "deep_gaze2_experiment0010.ckpt"

@@ -1,0 +1,15 @@
+functools32>=3.2.3.post2
+entrypoints>=0.2.2
+enum>=0.4.6
+Lasagne>=0.2.dev1
+optpy>=0.0.1
+pkg-resources>=0.0.0
+pysaliency>=0.1.0
+
+
+
+
+
+Use instead
+pip install --upgrade https://github.com/Theano/Theano/archive/master.zip
+pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
