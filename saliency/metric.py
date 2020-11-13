@@ -17,7 +17,12 @@ import cv2
 import random
 import utils
 from  dataset_path import COLLECTION_PATH
-import math  
+import math 
+import os
+import sys
+#sys.path.insert(0,'/home/qiang/QiangLi/Python_Utils_Functional/FixaTons-master/')
+#import FixaTons
+
 '''
 sys.path.insert(0,'/home/qiang/QiangLi/Python_Utils_Functional/FixaTons-master/')
 import FixaTons
@@ -635,8 +640,8 @@ def show_map(DATASET_NAME, STIMULUS_NAME, showFixMap=False, showSalMap=True, sho
 
 
 if __name__ == '__main__':
-   
-    DATASET_NAME = 'mit1003'
+    
+    DATASET_NAME = 'sid4vam'
     AUC_SCORE1 =[]
     AUC_SCORE2 =[]
     CC_S = []
@@ -646,7 +651,9 @@ if __name__ == '__main__':
     NSS_S = []
    
     for image in stimu(DATASET_NAME):
-    
+        print(['@@@@@@@@@@@@@@@@@@@@@@'])
+        print(image)
+        print(['@@@@@@@@@@@@@@@@@@@@@@'])
         saliency_map = utils.saliency_map(DATASET_NAME, image)
         fixation_map = utils.fixation_map(DATASET_NAME, image)
         #show_map(DATASET_NAME, image,  showFixMap = True, showSalMap = True, showqlMap = True,
@@ -754,7 +761,7 @@ if __name__ == '__main__':
         #                    thickness = 1.0, zoom_factor=1.0, threshold=0.05, rel_levels=None,
         #                    alpha=0.5, color_offset = 0.25, plot_color_bar=True)
         #    plt.show()
- 
+    
     '''
     DATASET_NAME = 'MIT1003'
     AUC_SCORE1 =[]
@@ -858,4 +865,81 @@ if __name__ == '__main__':
     print('----------------')
     print('Mean_NSS_Scores:', Mean_NSS_Scores)
     print('----------------')
+    '''
+    '''
+    
+    # Metric for MIT300 
+    DATASET_NAME = 'MIT300'
+    
+    AUC_SCORE2 =[]
+    CC_S = []
+    SIM_S = []
+    MIT_KLDiv_S = []
+    infogain_S = []
+    NSS_S = []
+
+    for STIMULUS_NAME in FixaTons.info.stimuli(DATASET_NAME):
+        stimulus_matrix = FixaTons.get.stimulus(DATASET_NAME, STIMULUS_NAME)
+        print(stimulus_matrix)
+        saliency_map_matrix = FixaTons.get.saliency_map(DATASET_NAME, STIMULUS_NAME)
+        print(saliency_map_matrix)
+    
+        fixation_map_matrix = FixaTons.get.fixation_map(DATASET_NAME, STIMULUS_NAME)
+        saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, STIMULUS_NAME)
+        #AUC
+        score2 = AUC_Judd(saliency_map_ql, fixation_map_matrix, jitter=True, toPlot=False) 
+        print('Saliency_MAP_ITT:', score2)
+        AUC_SCORE2.append(score2)
+        #CC
+        CC_Score = CC(saliency_map_ql, saliency_map_matrix)
+        print('Similarity:', CC_Score)
+        CC_S.append(CC_Score)
+        #SIM
+        SIM_Score = SIM(saliency_map_ql, saliency_map_matrix)
+        print('SIM:', SIM_Score)
+        SIM_S.append(SIM_Score)
+        #KLD
+        MIT_KLDiv_Score = kldiv(saliency_map_ql, saliency_map_matrix)
+        print('KLDiv:', MIT_KLDiv_Score)
+        MIT_KLDiv_S.append(MIT_KLDiv_Score)
+        #IG
+        infogain_Score = compute_information_gain(saliency_map_ql, saliency_map_matrix, baseline=[])
+        print('Information Gain', infogain_Score)
+        infogain_S.append(infogain_Score)
+        #NSS
+        NSS_Score = compute_nss(saliency_map_ql, saliency_map_matrix)
+        print('NSS', NSS_Score)
+        NSS_S.append(NSS_Score)
+        
+    Mean_AUC_SCORE2 = np.mean(AUC_SCORE2)
+    print('----------------')
+    print('Mean_AUC_SCORE2', Mean_AUC_SCORE2)
+    print('----------------')
+    
+    Mean_CC_Scores = np.mean(CC_S)
+    print('----------------')
+    print('Mean_CC_Scores', Mean_CC_Scores)
+    print('----------------')
+    
+    Mean_SIM_Scores = np.mean(SIM_S)
+    print('----------------')
+    print('Mean_SIM_Scores', Mean_SIM_Scores)
+    print('----------------')
+    
+    Mean_MIT_KLDiv_Scores = np.mean(MIT_KLDiv_S)
+    print('----------------')
+    print('Mean_MIT_KLDiv_Scores:', Mean_MIT_KLDiv_Scores)
+    print('----------------')
+
+    Mean_infogain_Scores = np.mean(infogain_S)
+    print('----------------')
+    print('Mean_infogain_Scores:', Mean_infogain_Scores)
+    print('----------------')
+    
+    Mean_NSS_Scores = np.mean(NSS_S)
+    print('----------------')
+    print('Mean_NSS_Scores:', Mean_NSS_Scores)
+    print('----------------')
+
+
     '''

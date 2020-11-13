@@ -18,10 +18,10 @@ from tqdm import trange
 
 # main
 if __name__ == '__main__':
-    img_path = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/MIT1003/STIMULI'
+    img_path = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/STIMULI/'
     #path1 = '/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/saliency/Saliency_other_models/IttiKoch_model/IttiKoch_Result'
-    path2 = '/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/saliency/Saliency_other_models/AIM_model/AIM_Result'
-    
+    #path2 = '/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/saliency/Saliency_other_models/AIM_model/AIM_Result'
+    path3 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/ITT/'
     for filename in os.listdir(img_path):
         #print(filename)
         img = cv2.imread(os.path.join(img_path, filename))
@@ -39,5 +39,5 @@ if __name__ == '__main__':
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
 
-        cv2.imwrite(os.path.join(path1 ,filename), saliency_map*255) 
+        cv2.imwrite(os.path.join(path3 ,filename), saliency_map*255) 
         

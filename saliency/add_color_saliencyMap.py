@@ -60,11 +60,15 @@ def stimu(DATASET_NAME):
 
 
 if __name__ == '__main__':
-    filesave = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/mit1003/WECSF/color_saliency_map/'
-    DATASET_NAME = 'mit1003' 
+    filesave = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/WECSF/color_saliency_map/'
+    DATASET_NAME = 'sid4vam' 
     for image in stimu(DATASET_NAME):
+        #print(image)
         stimulus = utils.stimulus(DATASET_NAME, image)
+        #print(stimulus)
         saliency_map = utils.saliency_map_ql(DATASET_NAME, image)
+        #print(saliency_map)
+        
         filename = os.path.join(filesave, image)
         save_saliency_map(stimulus, saliency_map, filename)
     print('done')

@@ -1411,14 +1411,14 @@ def Saliency_Map(img_path):
         fina_upsample = scipy.ndimage.zoom(fina, 2, order=2)
         Saliency_s = N(fin_upsample[:341,:341]) + N(fina_upsample[:341,:341]) + N(finb)
         Saliency_s = N(scipy.ndimage.zoom(Saliency_s, 2, order=2))
-        Saliency_s = Saliency_s**2.2
+        Saliency_s = Saliency_s**4.2
         #plt.figure()
         #plt.imshow(Saliency_s)
         #plt.show()
         #---------------------------------------------------
         # Feature Integate Theory 
         #---------------------------------------------------
-        CSF_W=make_CSF(x=682, nfreq=4024)   #3024
+        CSF_W=make_CSF(x=682, nfreq=1024)   #3024/4024
         Saliency_s = np.double (np.real(np.fft.ifft2(np.fft.ifftshift(np.fft.fftshift(np.fft.fft2(Saliency_s.real))* CSF_W))))
         Chromatic_Conspicuity = np.double (np.real(np.fft.ifft2(np.fft.ifftshift(np.fft.fftshift(np.fft.fft2(Chromatic_Conspicuity.real))* CSF_W))))
         Intensity_Conspicuity = np.double (np.real(np.fft.ifft2(np.fft.ifftshift(np.fft.fftshift(np.fft.fft2(Intensity_Conspicuity.real))* CSF_W))))
@@ -1436,8 +1436,11 @@ def Saliency_Map(img_path):
         #cv2.imwrite(os.path.join(copy_to_path2 ,filename), Saliency_V) 
         
         
-        copy_to_path3 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/TORONTO/SALIENCY_MAPS_QL/'
-        cv2.imwrite(os.path.join(copy_to_path3 ,filename), Saliency_V) 
+        #copy_to_path3 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/TORONTO/SALIENCY_MAPS_QL/'
+        #cv2.imwrite(os.path.join(copy_to_path3 ,filename), Saliency_V) 
+        
+        copy_to_path4 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/WECSF/'
+        cv2.imwrite(os.path.join(copy_to_path4 ,filename), Saliency_V) 
         
 
         #Saliency_density = convert_saliency_map_to_density(Saliency_V*255, minimum_value=1.0)
@@ -1452,7 +1455,11 @@ if __name__ == '__main__':
     #MIT300_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/MIT300_dataset/BenchmarkIMAGES'
     #Saliency_Map(MIT300_dataset)
 
-    TORONTO_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/TORONTO/fixdens/Original_Image_Set'
-    Saliency_Map(TORONTO_dataset)
+    #TORONTO_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/TORONTO/fixdens/Original_Image_Set'
+    #Saliency_Map(TORONTO_dataset)
+
+    sid4vam_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/STIMULI'
+    Saliency_Map(sid4vam_dataset)
+
 
     print('DONE')

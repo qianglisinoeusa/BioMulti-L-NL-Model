@@ -7,8 +7,13 @@ import sys
 sys.path.insert(0,'/home/qiang/QiangLi/Python_Utils_Functional/FixaTons-master/')
 
 import FixaTons
+
+
+print(FixaTons.info.datasets())
+
+
 # Put the dataset into the same fold with code
-dataset = 'MIT1003'
+#dataset = 'MIT300'
 
 '''
 FixaTons.info.datasets()
@@ -48,6 +53,14 @@ FixaTons.metrics.AUC_Judd(saliency_map_matrix, fixation_map_matrix, jitter = Tru
 FixaTons.metrics.NSS(saliencyMap_matrix, fixation_map_matrix)
 '''
 #For all image in that dataset
-for image in FixaTons.info.stimuli(dataset):
-    for subject in FixaTons.info.subjects(dataset, image):
-        FixaTons.show.scanpath(dataset, image, subject, animation=True, plotMaxDim=1000, wait_time=5000) 
+#for image in FixaTons.info.stimuli(dataset):
+#    for subject in FixaTons.info.subjects(dataset, image):
+#        FixaTons.show.scanpath(dataset, image, subject, animation=True, plotMaxDim=1000, wait_time=5000) 
+
+dataset = 'MIT300'
+for STIMULUS_NAME in FixaTons.info.stimuli(DATASET_NAME):
+    stimulus_matrix = FixaTons.get.stimulus(DATASET_NAME, STIMULUS_NAME)
+    saliency_map_matrix = FixaTons.get.saliency_map(DATASET_NAME, STIMULUS_NAME)
+    fixation_map_matrix = FixaTons.get.fixation_map(DATASET_NAME, STIMULUS_NAME)
+    
+
