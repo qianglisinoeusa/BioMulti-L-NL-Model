@@ -10,6 +10,9 @@ conda install -c conda-forge hdf5storage
 srun --pty -p LADON --mem=240000M -t 220:00:00 -c 46 bash
 python TC_estimate.py 
 
+#Python check virtual environment or list all estimated virtual environment
+
+conda info --envs
 
 #Matlab
 
