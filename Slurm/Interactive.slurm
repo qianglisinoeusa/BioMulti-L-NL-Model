@@ -8,10 +8,14 @@ conda activate py3_env_updates
 conda install -c conda-forge hdf5storage
 
 srun --pty -p LADON --mem=240000M -t 220:00:00 -c 46 bash
+# if you want to log into specific nodes (e.g. use GPU), you can use:
+# srun --pty -p LADON --mem=240000M -t 220:00:00 -c 46 --nodes=17(my case) bash
+
 python TC_estimate.py 
 
 #Python check virtual environment or list all estimated virtual environment
 
+#Pytho check all virtual environments 
 conda info --envs
 
 #Matlab
