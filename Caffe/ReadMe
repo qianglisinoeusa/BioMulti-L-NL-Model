@@ -1,0 +1,54 @@
+Caffe install in the Ubuntu18.04
+
+1. Download Caffe from: https://github.com/BVLC/caffe
+
+2. Following the instruction from official website: https://caffe.berkeleyvision.org/install_apt.html to install necessary dependent 
+   libraries.
+
+3. Modify Makefile.config file (Template for my case)
+
+   python -m site  for find location of python site-packages
+   find -name XXX or find /usr/lib/ -name XXX
+
+4. Make all -j4 ---- you will have trouble but it can be fix use above Makefile.config for my case.
+   make test
+   make runtest
+
+5. make pycaffe
+   make pytest
+
+Appendix:
+
+tutorial for install caffe in the ubuntu: https://www.youtube.com/watch?v=DnIs4DRjNL4 
+Bug and related solutions: https://github.com/BVLC/caffe
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+General step for install Caffe on the Ubuntu:
+
+
+sudo apt-get install libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev protobuf-compiler
+sudo apt-get install --no-install-recommends libboost-all-dev
+
+sudo apt-get install libatlas-base-dev (BLAS)
+
+sudo apt-get install libgflags-dev libgoogle-glog-dev liblmdb-dev
+
+%For Python
+
+find -name requirements.txt
+cd caffe/python/
+for req in $(cat requirements.txt); do pip install $req; done
+cd ..
+python -m site 
+% /home/liqiang/.local/lib/python3.6/site-packages/numpy/core/include 
+
+cp Makefile.config.example Makefile.config
+# Adjust Makefile.config (for example, if using Anaconda Python, or if cuDNN is desired)
+make all
+make test
+make runtest
+
+% Python
+make pycaffe
+make pytest
+
