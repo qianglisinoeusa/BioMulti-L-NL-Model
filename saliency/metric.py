@@ -20,6 +20,8 @@ from  dataset_path import COLLECTION_PATH
 import math 
 import os
 import sys
+from PIL import Image, ImageOps
+
 #sys.path.insert(0,'/home/qiang/QiangLi/Python_Utils_Functional/FixaTons-master/')
 #import FixaTons
 
@@ -641,117 +643,125 @@ def show_map(DATASET_NAME, STIMULUS_NAME, showFixMap=False, showSalMap=True, sho
 
 if __name__ == '__main__':
     
-    DATASET_NAME = 'sid4vam'
-    AUC_SCORE1 =[]
-    AUC_SCORE2 =[]
-    CC_S = []
-    SIM_S = []
-    MIT_KLDiv_S = []
-    infogain_S = []
-    NSS_S = []
-   
-    for image in stimu(DATASET_NAME):
-        print(['@@@@@@@@@@@@@@@@@@@@@@'])
-        print(image)
-        print(['@@@@@@@@@@@@@@@@@@@@@@'])
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        fixation_map = utils.fixation_map(DATASET_NAME, image)
-        #show_map(DATASET_NAME, image,  showFixMap = True, showSalMap = True, showqlMap = True,
-        #        wait_time=500, plotMaxDim = 1600)
-        #show_scanpath(DATASET_NAME, image, subj, animation=True, plotMaxDim=1000, wait_time=500)
-        #score1 = AUC_Judd(saliency_map[:682, :682], fixation_map[:682, :682], jitter=True, toPlot=False) 
-        #print('Ground_Truth:', score1)
-        #AUC_SCORE1.append(score1)
-    
-        saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
-        score2 = AUC_Judd(saliency_map_ql, fixation_map, jitter=True, toPlot=False) 
-        print('Saliency_MAP_QL:', score2)
-        AUC_SCORE2.append(score2)
-    
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        h,w = saliency_map.shape
-        saliency_map = resize(saliency_map, (682, 1024))
-        saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
-        saliency_map_ql = resize(saliency_map_ql, (682,1024))
-        CC_Score = CC(saliency_map_ql, saliency_map)
-        print('Similarity:', CC_Score)
-        CC_S.append(CC_Score)
-    
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        h,w = saliency_map.shape
-        saliency_map = resize(saliency_map, (682, 1024))
-        saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
-        saliency_map_ql = resize(saliency_map_ql, (682,1024))
-        SIM_Score = SIM(saliency_map_ql, saliency_map)
-        print('SIM:', SIM_Score)
-        SIM_S.append(SIM_Score)
-    
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        saliency_map = resize(saliency_map, (682, 1024))
-        fixation_map = utils.fixation_map(DATASET_NAME, image)
-        fixation_map = resize(fixation_map, (682, 1024))
-        saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
-        saliency_map_ql = resize(saliency_map_ql, (682,1024))
-        MIT_KLDiv_Score = kldiv(saliency_map_ql, saliency_map)
-        print('KLDiv:', MIT_KLDiv_Score)
-        MIT_KLDiv_S.append(MIT_KLDiv_Score)
+    DATASET_NAME = 'mit1003' 
 
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        saliency_map = resize(saliency_map, (682, 1024))
-        fixation_map = utils.fixation_map(DATASET_NAME, image)
-        fixation_map = resize(fixation_map, (682, 1024))
-        saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
-        saliency_map_ql = resize(saliency_map_ql, (682,1024))
-        infogain_Score = compute_information_gain(saliency_map_ql, saliency_map, baseline=[])
-        print('Information Gain', infogain_Score)
-        infogain_S.append(infogain_Score)
+    if DATASET_NAME == 'sid4vam':
+        AUC_SCORE1 =[]
+        AUC_SCORE2 =[]
+        CC_S = []
+        SIM_S = []
+        MIT_KLDiv_S = []
+        infogain_S = []
+        NSS_S = []
+    
+        for image in stimu(DATASET_NAME):
+            print(['@@@@@@@@@@@@@@@@@@@@@@'])
+            print(image)
+            print(['@@@@@@@@@@@@@@@@@@@@@@'])
+            saliency_map = utils.saliency_map(DATASET_NAME, image)
+            fixation_map = utils.fixation_map(DATASET_NAME, image)
+            #show_map(DATASET_NAME, image,  showFixMap = True, showSalMap = True, showqlMap = True,
+            #        wait_time=500, plotMaxDim = 1600)
+            #show_scanpath(DATASET_NAME, image, subj, animation=True, plotMaxDim=1000, wait_time=500)
+            #score1 = AUC_Judd(saliency_map[:682, :682], fixation_map[:682, :682], jitter=True, toPlot=False) 
+            #print('Ground_Truth:', score1)
+            #AUC_SCORE1.append(score1)
+        
+            saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
+            score2 = AUC_Judd(saliency_map_ql, fixation_map, jitter=True, toPlot=False) 
+            score2 = np.nan_to_num(score2) 
+            print('Saliency_MAP_QL:', score2)
+            AUC_SCORE2.append(score2)
+        
+            saliency_map = utils.saliency_map(DATASET_NAME, image)
+            h,w = saliency_map.shape
+            saliency_map = resize(saliency_map, (682, 1024))
+            saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
+            saliency_map_ql = resize(saliency_map_ql, (682,1024))
+            CC_Score = CC(saliency_map_ql, saliency_map)
+            CC_Score = np.nan_to_num(CC_Score) 
+            print('Similarity:', CC_Score)
+            CC_S.append(CC_Score)
+        
+            saliency_map = utils.saliency_map(DATASET_NAME, image)
+            h,w = saliency_map.shape
+            saliency_map = resize(saliency_map, (682, 1024))
+            saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
+            saliency_map_ql = resize(saliency_map_ql, (682,1024))
+            SIM_Score = SIM(saliency_map_ql, saliency_map)
+            SIM_Score = np.nan_to_num(SIM_Score)
+            print('SIM:', SIM_Score)
+            SIM_S.append(SIM_Score)
+        
+            saliency_map = utils.saliency_map(DATASET_NAME, image)
+            saliency_map = resize(saliency_map, (682, 1024))
+            fixation_map = utils.fixation_map(DATASET_NAME, image)
+            fixation_map = resize(fixation_map, (682, 1024))
+            saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
+            saliency_map_ql = resize(saliency_map_ql, (682,1024))
+            MIT_KLDiv_Score = kldiv(saliency_map_ql, saliency_map)
+            MIT_KLDiv_Score = np.nan_to_num(MIT_KLDiv_Score)
+            print('KLDiv:', MIT_KLDiv_Score)
+            MIT_KLDiv_S.append(MIT_KLDiv_Score)
 
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        saliency_map = resize(saliency_map, (682, 1024))
-        fixation_map = utils.fixation_map(DATASET_NAME, image)
-        fixation_map = resize(fixation_map, (682, 1024))
-        saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
-        saliency_map_ql = resize(saliency_map_ql, (682,1024))
-        NSS_Score = compute_nss(saliency_map_ql, saliency_map)
-        print('NSS', NSS_Score)
-        NSS_S.append(NSS_Score)
+            saliency_map = utils.saliency_map(DATASET_NAME, image)
+            saliency_map = resize(saliency_map, (682, 1024))
+            fixation_map = utils.fixation_map(DATASET_NAME, image)
+            fixation_map = resize(fixation_map, (682, 1024))
+            saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
+            saliency_map_ql = resize(saliency_map_ql, (682,1024))
+            infogain_Score = compute_information_gain(saliency_map_ql, saliency_map, baseline=[])
+            infogain_Score = np.nan_to_num(infogain_Score)
+            print('Information Gain', infogain_Score)
+            infogain_S.append(infogain_Score)
+
+            saliency_map = utils.saliency_map(DATASET_NAME, image)
+            saliency_map = resize(saliency_map, (682, 1024))
+            fixation_map = utils.fixation_map(DATASET_NAME, image)
+            fixation_map = resize(fixation_map, (682, 1024))
+            saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, image)
+            saliency_map_ql = resize(saliency_map_ql, (682,1024))
+            NSS_Score = compute_nss(saliency_map_ql, saliency_map)
+            NSS_Score = np.nan_to_num(NSS_Score)
+            print('NSS', NSS_Score)
+            NSS_S.append(NSS_Score)
 
 
-    Mean_AUC_SCORE1 = np.mean(AUC_SCORE1)
-    print('----------------')
-    print('Mean_AUC_SCORE1:', Mean_AUC_SCORE1)
-    print('----------------')
-    
-    Mean_AUC_SCORE2 = np.mean(AUC_SCORE2)
-    print('----------------')
-    print('Mean_AUC_SCORE2', Mean_AUC_SCORE2)
-    print('----------------')
-    
-    Mean_CC_Scores = np.mean(CC_S)
-    print('----------------')
-    print('Mean_CC_Scores', Mean_CC_Scores)
-    print('----------------')
-    
-    Mean_SIM_Scores = np.mean(SIM_S)
-    print('----------------')
-    print('Mean_SIM_Scores', Mean_SIM_Scores)
-    print('----------------')
-    
-    Mean_MIT_KLDiv_Scores = np.mean(MIT_KLDiv_S)
-    print('----------------')
-    print('Mean_MIT_KLDiv_Scores:', Mean_MIT_KLDiv_Scores)
-    print('----------------')
+        Mean_AUC_SCORE1 = np.mean(AUC_SCORE1)
+        print('----------------')
+        print('Mean_AUC_SCORE1:', Mean_AUC_SCORE1)
+        print('----------------')
+        
+        Mean_AUC_SCORE2 = np.mean(AUC_SCORE2)
+        print('----------------')
+        print('Mean_AUC_SCORE2', Mean_AUC_SCORE2)
+        print('----------------')
+        
+        Mean_CC_Scores = np.mean(CC_S)
+        print('----------------')
+        print('Mean_CC_Scores', Mean_CC_Scores)
+        print('----------------')
+        
+        Mean_SIM_Scores = np.mean(SIM_S)
+        print('----------------')
+        print('Mean_SIM_Scores', Mean_SIM_Scores)
+        print('----------------')
+        
+        Mean_MIT_KLDiv_Scores = np.mean(MIT_KLDiv_S)
+        print('----------------')
+        print('Mean_MIT_KLDiv_Scores:', Mean_MIT_KLDiv_Scores)
+        print('----------------')
 
-    Mean_infogain_Scores = np.mean(infogain_S)
-    print('----------------')
-    print('Mean_infogain_Scores:', Mean_infogain_Scores)
-    print('----------------')
-    
-    Mean_NSS_Scores = np.mean(NSS_S)
-    print('----------------')
-    print('Mean_NSS_Scores:', Mean_NSS_Scores)
-    print('----------------')
-    
+        Mean_infogain_Scores = np.mean(infogain_S)
+        print('----------------')
+        print('Mean_infogain_Scores:', Mean_infogain_Scores)
+        print('----------------')
+        
+        Mean_NSS_Scores = np.mean(NSS_S)
+        print('----------------')
+        print('Mean_NSS_Scores:', Mean_NSS_Scores)
+        print('----------------')
+        
 
         #for image in stimu(DATASET_NAME):
         #    saliency_map = utils.saliency_map(DATASET_NAME, image)
@@ -761,185 +771,162 @@ if __name__ == '__main__':
         #                    thickness = 1.0, zoom_factor=1.0, threshold=0.05, rel_levels=None,
         #                    alpha=0.5, color_offset = 0.25, plot_color_bar=True)
         #    plt.show()
-    
-    '''
-    DATASET_NAME = 'MIT1003'
-    AUC_SCORE1 =[]
-    AUC_SCORE2 =[]
-    CC_S = []
-    SIM_S = []
-    MIT_KLDiv_S = []
-    infogain_S = []
-    NSS_S = []
-
-    for image in stimu(DATASET_NAME):
-    
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        fixation_map = utils.fixation_map(DATASET_NAME, image)
         
-        saliency_map_ITT = utils.saliency_map_ITT(DATASET_NAME, image)
-        score2 = AUC_Judd(saliency_map_ITT, fixation_map, jitter=True, toPlot=False) 
-        print('Saliency_MAP_ITT:', score2)
-        AUC_SCORE2.append(score2)
     
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        h,w = saliency_map.shape
-        saliency_map = resize(saliency_map, (682, 1024))
-        saliency_map_ITT = utils.saliency_map_ITT(DATASET_NAME, image)
-        saliency_map_ITT = resize(saliency_map_ITT, (682,1024))
-        CC_Score = CC(saliency_map_ITT, saliency_map)
-        print('Similarity:', CC_Score)
-        CC_S.append(CC_Score)
-    
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        h,w = saliency_map.shape
-        saliency_map = resize(saliency_map, (682, 1024))
-        saliency_map_ITT = utils.saliency_map_ITT(DATASET_NAME, image)
-        saliency_map_ITT = resize(saliency_map_ITT, (682,1024))
-        SIM_Score = SIM(saliency_map_ITT, saliency_map)
-        print('SIM:', SIM_Score)
-        SIM_S.append(SIM_Score)
-    
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        saliency_map = resize(saliency_map, (682, 1024))
-        fixation_map = utils.fixation_map(DATASET_NAME, image)
-        fixation_map = resize(fixation_map, (682, 1024))
-        saliency_map_ITT = utils.saliency_map_ITT(DATASET_NAME, image)
-        saliency_map_ITT = resize(saliency_map_ITT, (682,1024))
-        MIT_KLDiv_Score = kldiv(saliency_map_ITT, saliency_map)
-        print('KLDiv:', MIT_KLDiv_Score)
-        MIT_KLDiv_S.append(MIT_KLDiv_Score)
+    if DATASET_NAME == 'mit1003':
+        AUC_SCORE1 =[]
+        AUC_SCORE2 =[]
+        CC_S = []
+        SIM_S = []
+        MIT_KLDiv_S = []
+        infogain_S = []
+        NSS_S = []
 
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        saliency_map = resize(saliency_map, (682, 1024))
-        fixation_map = utils.fixation_map(DATASET_NAME, image)
-        fixation_map = resize(fixation_map, (682, 1024))
-        saliency_map_ITT = utils.saliency_map_ITT(DATASET_NAME, image)
-        saliency_map_ITT = resize(saliency_map_ITT, (682,1024))
-        infogain_Score = compute_information_gain(saliency_map_ITT, saliency_map, baseline=[])
-        print('Information Gain', infogain_Score)
-        infogain_S.append(infogain_Score)
+        for image in stimu(DATASET_NAME):
+            
 
-        saliency_map = utils.saliency_map(DATASET_NAME, image)
-        saliency_map = resize(saliency_map, (682, 1024))
-        fixation_map = utils.fixation_map(DATASET_NAME, image)
-        fixation_map = resize(fixation_map, (682, 1024))
-        saliency_map_ITT = utils.saliency_map_ITT(DATASET_NAME, image)
-        saliency_map_ITT = resize(saliency_map_ITT, (682,1024))
-        NSS_Score = compute_nss(saliency_map_ITT, saliency_map)
-        print('NSS', NSS_Score)
-        NSS_S.append(NSS_Score)
+            print('6666666666666')
+            print(image)
+            print('6666666666666')
 
-
-    Mean_AUC_SCORE1 = np.mean(AUC_SCORE1)
-    print('----------------')
-    print('Mean_AUC_SCORE1:', Mean_AUC_SCORE1)
-    print('----------------')
-    
-    Mean_AUC_SCORE2 = np.mean(AUC_SCORE2)
-    print('----------------')
-    print('Mean_AUC_SCORE2', Mean_AUC_SCORE2)
-    print('----------------')
-    
-    Mean_CC_Scores = np.mean(CC_S)
-    print('----------------')
-    print('Mean_CC_Scores', Mean_CC_Scores)
-    print('----------------')
-    
-    Mean_SIM_Scores = np.mean(SIM_S)
-    print('----------------')
-    print('Mean_SIM_Scores', Mean_SIM_Scores)
-    print('----------------')
-    
-    Mean_MIT_KLDiv_Scores = np.mean(MIT_KLDiv_S)
-    print('----------------')
-    print('Mean_MIT_KLDiv_Scores:', Mean_MIT_KLDiv_Scores)
-    print('----------------')
-
-    Mean_infogain_Scores = np.mean(infogain_S)
-    print('----------------')
-    print('Mean_infogain_Scores:', Mean_infogain_Scores)
-    print('----------------')
-    
-    Mean_NSS_Scores = np.mean(NSS_S)
-    print('----------------')
-    print('Mean_NSS_Scores:', Mean_NSS_Scores)
-    print('----------------')
-    '''
-    '''
-    
-    # Metric for MIT300 
-    DATASET_NAME = 'MIT300'
-    
-    AUC_SCORE2 =[]
-    CC_S = []
-    SIM_S = []
-    MIT_KLDiv_S = []
-    infogain_S = []
-    NSS_S = []
-
-    for STIMULUS_NAME in FixaTons.info.stimuli(DATASET_NAME):
-        stimulus_matrix = FixaTons.get.stimulus(DATASET_NAME, STIMULUS_NAME)
-        print(stimulus_matrix)
-        saliency_map_matrix = FixaTons.get.saliency_map(DATASET_NAME, STIMULUS_NAME)
-        print(saliency_map_matrix)
-    
-        fixation_map_matrix = FixaTons.get.fixation_map(DATASET_NAME, STIMULUS_NAME)
-        saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, STIMULUS_NAME)
-        #AUC
-        score2 = AUC_Judd(saliency_map_ql, fixation_map_matrix, jitter=True, toPlot=False) 
-        print('Saliency_MAP_ITT:', score2)
-        AUC_SCORE2.append(score2)
-        #CC
-        CC_Score = CC(saliency_map_ql, saliency_map_matrix)
-        print('Similarity:', CC_Score)
-        CC_S.append(CC_Score)
-        #SIM
-        SIM_Score = SIM(saliency_map_ql, saliency_map_matrix)
-        print('SIM:', SIM_Score)
-        SIM_S.append(SIM_Score)
-        #KLD
-        MIT_KLDiv_Score = kldiv(saliency_map_ql, saliency_map_matrix)
-        print('KLDiv:', MIT_KLDiv_Score)
-        MIT_KLDiv_S.append(MIT_KLDiv_Score)
-        #IG
-        infogain_Score = compute_information_gain(saliency_map_ql, saliency_map_matrix, baseline=[])
-        print('Information Gain', infogain_Score)
-        infogain_S.append(infogain_Score)
-        #NSS
-        NSS_Score = compute_nss(saliency_map_ql, saliency_map_matrix)
-        print('NSS', NSS_Score)
-        NSS_S.append(NSS_Score)
+            saliency_map = utils.saliency_map(DATASET_NAME, image)
+            saliency_map = resize(saliency_map, (682, 1024)) 
+            fixation_map = utils.fixation_map(DATASET_NAME, image)
+            fixation_map = resize(fixation_map, (682, 1024))
+            saliency_map_ITT = utils.saliency_map_ql(DATASET_NAME, image)
+            saliency_map_ITT = resize(saliency_map_ITT, (682, 1024))
+            
+            score2 = AUC_Judd(saliency_map_ITT, fixation_map, jitter=True, toPlot=False) 
+            score2 = np.nan_to_num(score2) 
         
-    Mean_AUC_SCORE2 = np.mean(AUC_SCORE2)
-    print('----------------')
-    print('Mean_AUC_SCORE2', Mean_AUC_SCORE2)
-    print('----------------')
-    
-    Mean_CC_Scores = np.mean(CC_S)
-    print('----------------')
-    print('Mean_CC_Scores', Mean_CC_Scores)
-    print('----------------')
-    
-    Mean_SIM_Scores = np.mean(SIM_S)
-    print('----------------')
-    print('Mean_SIM_Scores', Mean_SIM_Scores)
-    print('----------------')
-    
-    Mean_MIT_KLDiv_Scores = np.mean(MIT_KLDiv_S)
-    print('----------------')
-    print('Mean_MIT_KLDiv_Scores:', Mean_MIT_KLDiv_Scores)
-    print('----------------')
+            print('Saliency_MAP_ITT:', score2)
+            AUC_SCORE2.append(score2)
+        
+            CC_Score = CC(saliency_map_ITT, saliency_map)
+            print('Similarity:', CC_Score)
+            CC_S.append(CC_Score)
+        
+            SIM_Score = SIM(saliency_map_ITT, saliency_map)
+            print('SIM:', SIM_Score)
+            SIM_S.append(SIM_Score)
+        
+            MIT_KLDiv_Score = kldiv(saliency_map_ITT, saliency_map)
+            print('KLDiv:', MIT_KLDiv_Score)
+            MIT_KLDiv_S.append(MIT_KLDiv_Score)
 
-    Mean_infogain_Scores = np.mean(infogain_S)
-    print('----------------')
-    print('Mean_infogain_Scores:', Mean_infogain_Scores)
-    print('----------------')
-    
-    Mean_NSS_Scores = np.mean(NSS_S)
-    print('----------------')
-    print('Mean_NSS_Scores:', Mean_NSS_Scores)
-    print('----------------')
+            infogain_Score = compute_information_gain(saliency_map_ITT, saliency_map, baseline=[])
+            print('Information Gain', infogain_Score)
+            infogain_S.append(infogain_Score)
+
+            NSS_Score = compute_nss(saliency_map_ITT, saliency_map)
+            print('NSS', NSS_Score)
+            NSS_S.append(NSS_Score)
 
 
-    '''
+        Mean_AUC_SCORE1 = np.mean(AUC_SCORE1)
+        print('----------------')
+        print('Mean_AUC_SCORE1:', Mean_AUC_SCORE1)
+        print('----------------')
+        
+        Mean_AUC_SCORE2 = np.mean(AUC_SCORE2)
+        print('----------------')
+        print('Mean_AUC_SCORE2', Mean_AUC_SCORE2)
+        print('----------------')
+        
+        Mean_CC_Scores = np.mean(CC_S)
+        print('----------------')
+        print('Mean_CC_Scores', Mean_CC_Scores)
+        print('----------------')
+        
+        Mean_SIM_Scores = np.mean(SIM_S)
+        print('----------------')
+        print('Mean_SIM_Scores', Mean_SIM_Scores)
+        print('----------------')
+        
+        Mean_MIT_KLDiv_Scores = np.mean(MIT_KLDiv_S)
+        print('----------------')
+        print('Mean_MIT_KLDiv_Scores:', Mean_MIT_KLDiv_Scores)
+        print('----------------')
+
+        Mean_infogain_Scores = np.mean(infogain_S)
+        print('----------------')
+        print('Mean_infogain_Scores:', Mean_infogain_Scores)
+        print('----------------')
+        
+        Mean_NSS_Scores = np.mean(NSS_S)
+        print('----------------')
+        print('Mean_NSS_Scores:', Mean_NSS_Scores)
+        print('----------------')
+    
+
+    if DATASET_NAME == 'MIT300':
+        
+        AUC_SCORE2 =[]
+        CC_S = []
+        SIM_S = []
+        MIT_KLDiv_S = []
+        infogain_S = []
+        NSS_S = []
+
+        for STIMULUS_NAME in FixaTons.info.stimuli(DATASET_NAME):
+            stimulus_matrix = FixaTons.get.stimulus(DATASET_NAME, STIMULUS_NAME)
+            print(stimulus_matrix)
+            saliency_map_matrix = FixaTons.get.saliency_map(DATASET_NAME, STIMULUS_NAME)
+            print(saliency_map_matrix)
+        
+            fixation_map_matrix = FixaTons.get.fixation_map(DATASET_NAME, STIMULUS_NAME)
+            saliency_map_ql = utils.saliency_map_ql(DATASET_NAME, STIMULUS_NAME)
+            #AUC
+            score2 = AUC_Judd(saliency_map_ql, fixation_map_matrix, jitter=True, toPlot=False) 
+            print('Saliency_MAP_ITT:', score2)
+            AUC_SCORE2.append(score2)
+            #CC
+            CC_Score = CC(saliency_map_ql, saliency_map_matrix)
+            print('Similarity:', CC_Score)
+            CC_S.append(CC_Score)
+            #SIM
+            SIM_Score = SIM(saliency_map_ql, saliency_map_matrix)
+            print('SIM:', SIM_Score)
+            SIM_S.append(SIM_Score)
+            #KLD
+            MIT_KLDiv_Score = kldiv(saliency_map_ql, saliency_map_matrix)
+            print('KLDiv:', MIT_KLDiv_Score)
+            MIT_KLDiv_S.append(MIT_KLDiv_Score)
+            #IG
+            infogain_Score = compute_information_gain(saliency_map_ql, saliency_map_matrix, baseline=[])
+            print('Information Gain', infogain_Score)
+            infogain_S.append(infogain_Score)
+            #NSS
+            NSS_Score = compute_nss(saliency_map_ql, saliency_map_matrix)
+            print('NSS', NSS_Score)
+            NSS_S.append(NSS_Score)
+            
+        Mean_AUC_SCORE2 = np.mean(AUC_SCORE2)
+        print('----------------')
+        print('Mean_AUC_SCORE2', Mean_AUC_SCORE2)
+        print('----------------')
+        
+        Mean_CC_Scores = np.mean(CC_S)
+        print('----------------')
+        print('Mean_CC_Scores', Mean_CC_Scores)
+        print('----------------')
+        
+        Mean_SIM_Scores = np.mean(SIM_S)
+        print('----------------')
+        print('Mean_SIM_Scores', Mean_SIM_Scores)
+        print('----------------')
+        
+        Mean_MIT_KLDiv_Scores = np.mean(MIT_KLDiv_S)
+        print('----------------')
+        print('Mean_MIT_KLDiv_Scores:', Mean_MIT_KLDiv_Scores)
+        print('----------------')
+
+        Mean_infogain_Scores = np.mean(infogain_S)
+        print('----------------')
+        print('Mean_infogain_Scores:', Mean_infogain_Scores)
+        print('----------------')
+        
+        Mean_NSS_Scores = np.mean(NSS_S)
+        print('----------------')
+        print('Mean_NSS_Scores:', Mean_NSS_Scores)
+        print('----------------')

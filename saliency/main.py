@@ -43,9 +43,11 @@ The *.ipynb version also can get when you test code.
 # Bash InstallDependent.sh
 
 # Input the mudules and exter-packages
+
 from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
+
 import sys
 sys.path.insert(0,'/home/qiang/QiangLi/Python_Utils_Functional/FirstVersion-BioMulti-L-NL-Model-ongoing/PyTorchSteerablePyramid')
 #@caution: if you download via pip, you need to update some funciton:
@@ -59,10 +61,10 @@ import glob
 from imageio import imread
 import math
 from skimage.transform import resize, rescale
-import skimage
 import scipy
 import scipy.misc
 from PIL import Image
+import PIL
 import matplotlib.pyplot as plt
 import os
 from mpl_toolkits.axes_grid1 import ImageGrid
@@ -97,6 +99,9 @@ from mpl_toolkits import axes_grid1
 from tqdm import tqdm_notebook as tqdm
 from tqdm import trange
 import scipy.ndimage
+from scipy.ndimage.filters import maximum_filter
+from scipy.ndimage import gaussian_filter
+import logging
 
 #%tensorflow_version 1x
 #import tensorflow as tf
@@ -135,30 +140,10 @@ plt.style.use('ggplot')
 plt.matplotlib.rcParams['font.size'] = 6
 #%load_ext autoreload
 #%autoreload 2
-'''
-############################################################################
-#                          Visual Computing Saliency Map
-############################################################################
-# Copyright (c) 2020 QiangLi. 
-# All rights reserved.
-# Distributed under the (new) BSD License.
-############################################################################
-# Human visual inspired multi-layer LNL model. In this model, the main component
-# are:
-#    Nature Image --> VonKries Adaptation --> ATD  (Color processing phase)
-#    Wavelets Transform --> Contrast sensivity function (CSF) --> Divisive
-#    Normalization(DN)  --> Noise(Gaussian or Poisson)
-#
-# Evalute of model with TID2008 database.
-#
-# Redundancy redunction measure with Total Correlation(RBIG or Cortex module)
-#
-# This model derivated two version script： Matlab, Python. In the future, I
-# want to implemented all of these code on C++ or Java. If our goal is simulate 
-# of primate brain, we need to implement all everything to High performance
-# Computer(HPC) with big framework architecture(C/C++/Java).
-'''
 
+
+
+#Class SaliencyMap_LNL(object)
 ############################################################################
 # Function 
 ############################################################################
@@ -512,20 +497,6 @@ def make_CSF(x, nfreq):
     f = radfreq < params[1]
     csf[f] = params[2]
     return csf
-
-def make_csf_r(x, y, nfreq):
-  [xplane,yplane]=np.meshgrid(-x/2+np.linspace(0.5,x/2,128)-0.5, -y/2+np.linspace(0.5,y/2,128)-0.5)
-  plane=(xplane+1j*yplane)/y*2*nfreq
-  radfreq=np.abs(plane)				
-
-  w=0.7
-  s=(1-w)/2*np.cos(4*np.angle(plane))+(1+w)/2
-  radfreq=radfreq/s
-
-  csf = 2.6*(0.0192+0.114*radfreq)*np.exp(-(0.114*radfreq)**1.1)
-  f = radfreq < 7.8909
-  csf[f] = 0.9809
-  return csf
 #---------------------------------------------------------------
 # Implemented Gabor function with control contrast, luminacne
 # velocity, orienttion and sigma of Gaussian function. 
@@ -1053,21 +1024,470 @@ def normalize_saliency_map(saliency_map, cdf, cdf_bins):
     smap = smap.reshape(shape)
     return smap
 
+def convert_saliency_map_to_density(saliency_map, minimum_value=0.0):
+    if saliency_map.min() < 0:
+        saliency_map = saliency_map - saliency_map.min()
+    saliency_map = saliency_map + minimum_value
+
+    saliency_map_sum = saliency_map.sum()
+    if saliency_map_sum:
+        saliency_map = saliency_map / saliency_map_sum
+    else:
+        saliency_map[:] = 1.0
+        saliency_map /= saliency_map.sum()
+
+    return saliency_map
+
 def get_imlist(path):
   """  
   Returns a list of filenames for all jpg images in a directory. """
 
-  return [os.path.join(path,f) for f in os.listdir(path) if f.endswith('.jpg')]
+  return [os.path.join(path,f) for f in os.listdir(path) if f.endswith('.jpeg')]
 
-#def Saliency_Map(img):
-if __name__ == '__main__':
+def intensity(image):
+    """
+    Convert color image into grayscale
+    """
+    return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    
+
+def markMaxima(saliency):
+	"""
+		Mark the maxima in a saliency map (a gray-scale image).
+	"""
+	maxima = maximum_filter(saliency, size=(2, 2))
+	maxima = np.array(saliency == maxima, dtype=np.float64) * 255
+	g = cv2.max(saliency, maxima)
+	r = saliency
+	b = saliency
+	marked = cv2.merge((b,g,r))
+	return marked
+
+def N(image):
+	"""
+		Normalization parameter as per Itti et al. (1998).
+		returns a normalized feature map image.
+	"""
+	M = 8.	# an arbitrary global maximum to which the image is scaled.
+			# (When saving saliency maps as images, pixel values may become
+			# too large or too small for the chosen image format depending
+			# on this constant)
+	image = cv2.convertScaleAbs(image, alpha=M/image.max(), beta=0.)
+	w,h = image.shape
+	maxima = maximum_filter(image, size=(w/10,h/1))
+	maxima = (image == maxima)
+	mnum = maxima.sum()
+	maxima = np.multiply(maxima, image)
+	mbar = float(maxima.sum()) / mnum
+	#.debug("Average of local maxima: %f.  Global maximum: %f", mbar, M)
+	return image * (M-mbar)**2
+
+def makeNormalizedColorChannels(image, thresholdRatio=10.):
+	"""
+		Creates a version of the (3-channel color) input image in which each of
+		the (4) channels is normalized.  Implements color opponencies as per 
+		Itti et al. (1998).
+		Arguments:
+			image			: input image (3 color channels)
+			thresholdRatio	: the threshold below which to set all color values
+								to zero.
+		Returns:
+			an output image with four normalized color channels for red, green,
+			blue and yellow.
+	"""
+	intens = intensity(image)
+	threshold = intens.max() / thresholdRatio
+	r,g,b = cv2.split(image)
+	cv2.threshold(src=r, dst=r, thresh=threshold, maxval=0.0, type=cv2.THRESH_TOZERO)
+	cv2.threshold(src=g, dst=g, thresh=threshold, maxval=0.0, type=cv2.THRESH_TOZERO)
+	cv2.threshold(src=b, dst=b, thresh=threshold, maxval=0.0, type=cv2.THRESH_TOZERO)
+	R = r - (g + b) / 2
+	G = g - (r + b) / 2
+	B = b - (g + r) / 2
+	Y = (r + g) / 2 - cv2.absdiff(r,g) / 2 - b
+
+	# Negative values are set to zero.
+	cv2.threshold(src=R, dst=R, thresh=0., maxval=0.0, type=cv2.THRESH_TOZERO)
+	cv2.threshold(src=G, dst=G, thresh=0., maxval=0.0, type=cv2.THRESH_TOZERO)
+	cv2.threshold(src=B, dst=B, thresh=0., maxval=0.0, type=cv2.THRESH_TOZERO)
+	cv2.threshold(src=Y, dst=Y, thresh=0., maxval=0.0, type=cv2.THRESH_TOZERO)
+
+	image = cv2.merge((R,G,B,Y))
+	return image
+
+def padding(img, shape_r, shape_c, channels=1):
+    img_padded = np.zeros((shape_r, shape_c, channels), dtype=np.uint8)
+    if channels == 1:
+        img_padded = np.zeros((shape_r, shape_c), dtype=np.uint8)
+
+    original_shape = img.shape
+    rows_rate = original_shape[0]/shape_r
+    cols_rate = original_shape[1]/shape_c
+
+    if rows_rate > cols_rate:
+        new_cols = (original_shape[1] * shape_r) // original_shape[0]
+        img = cv2.resize(img, (new_cols, shape_r))
+        if new_cols > shape_c:
+            new_cols = shape_c
+        img_padded[:, ((img_padded.shape[1] - new_cols) // 2):((img_padded.shape[1] - new_cols) // 2 + new_cols)] = img
+    else:
+        new_rows = (original_shape[0] * shape_c) // original_shape[1]
+        img = cv2.resize(img, (shape_c, new_rows))
+        if new_rows > shape_r:
+            new_rows = shape_r
+        img_padded[((img_padded.shape[0] - new_rows) // 2):((img_padded.shape[0] - new_rows) // 2 + new_rows), :] = img
+
+    return img_padded
+
+
+def csfsso(fs,N_X,N_Y):
+    
+    '''
+    
+    % function [h,CSFSSO,CSFT,OE]=csfsso(fs,N,g,fm,l,s,w,os)
+    % CSFSSO computes the CSF filter of the Standard Spatial Observer
+    % It includes the CSF expression of Tyler and the oblique effect.
+    %
+    %        CSFSSO(fx,fy)=CSFTYL(f)*OE(fx,fy)  
+    %
+    % where:
+    %
+    %        CSFTYL(f) = g*(exp(-(f/fm))-l*exp(-(f^2/s^2)))
+    %        OE(fx,fy) = 1-w*(4(1-exp(-(f/os)))*fx^2*fy^2)/f^4)
+    %
+    %        (fx,fy) = 2D spatial frequency vector (in cycl/deg)
+    %              f = Modulus of the spatial frequency (in cycl/deg)
+    %              g = Overall gain (Recom. value  g=330.74)
+    %             fm = Parameter that control the exp. decay of the CSFTyler
+    %                  (Recom. value fm=7.28)      
+    %              l = Loss at low frequencies (Recom. value fm=0.837)
+    %              s = Parameter that control the atenuation of the loss factor at 
+    %                  high frequencies (Recom. value s=1.809)
+    %              w = Weighting of the Oblique Effect (Recom. value w=1)
+    %                  (w=0 -> No oblique effect)
+    %             os = Oblique Effect scale (controls the attenuation of the 
+    %                  effect at high frequencies).
+    %                  Recom. value os=6.664).
+    % 
+    % This program returns the (spatial domain) FIR filter coefficients to be applied 
+    % with 'filter2' over the desired image. (These coefficients are similar to the PSF).
+    %
+    % Currently the filter design method is frequency sampling (see Image Processing Toolbox
+    % Tutorial) to (approximately) obtain the desired frequency response, CSFSSO, with the
+    % required filter order, N (odd), at a particular sampling frequency, fs (in cycles/deg).
+    %
+    % USAGE: [h,CSSFO,CSFT,OE]=csfsso(fs,N,g,fm,l,s,w,os);
+    %
+    % Recomended Values ( Watson&Ramirez,Modelfest OSA Meeting 1999 )
+    %
+    %        [h,CSSFO,CSFT,OE]=csfsso(fs,N,330.74,7.28,0.837,1.809,1,6.664);
+    %
+    % Matlab Version: https://isp.uv.es/code/visioncolor/CSF_toolbox.html
+    '''
+    #Parameters
+    g=330.74
+    fm=7.28
+    l= 0.837
+    s = 1.809
+    w = 1
+    oss = 6.664
+
+    fx, fy=get_grids(N_X, N_Y)
+    
+    fx=fx*fs/2
+    fy=fy*fs/2  
+    
+    f = frequency_radius(fx, fy, clean_division=True)
+    
+    #To avoid singularity at zero frequency
+    f=(f>0)*f+0.0001*(f==0)  
+    csft=g*(np.exp(-(f/fm))-l*np.exp(-(f**2/s**2)))
+    oe=1-w*(4*(1-np.exp(-(f/oss)))*fx**2*fy**2)/(f**4)
+    Csfsso=(csft*oe) 
+    h=fsamp2(Csfsso)
+
+    return h, Csfsso, csft, oe
+
+
+def get_grids(N_X, N_Y):
+    
+    """
+        Use that function to define a reference outline for envelopes in Fourier space.
+        In general, it is more efficient to define dimensions as powers of 2.
+        output is always  of even size.
+        A special case is when ``N_frame`` is one, in which case we generate a single frame.
+    """
+     
+    fx, fy = np.mgrid[(-N_X//2):((N_X-1)//2 + 1), (-N_Y//2):((N_Y-1)//2 + 1)]
+    fx, fy = fx*1./N_X, fy*1./N_Y
+    
+    return fx, fy
+
+
+def frequency_radius(fx, fy, clean_division=False):
+    
+    """
+     Returns the frequency radius. To see the effect of the scaling factor run
+     'test_color.py'
+    """
+    
+    f_radius2 = fx**2 + fy**2  # cf . Paul Schrater 00
+
+    if clean_division:
+        f_radius2[f_radius2==0.] = np.inf
+
+    return np.sqrt(f_radius2)
+
+
+def fsamp2(f1):
+    
+    """
+    fsamp2 2-D FIR filter using frequency sampling.
+    fsamp2 designs two-dimensional FIR filters based on a desired
+    two-dimensional frequency response sampled at points on the
+    Cartesian plane.
+    """
+    
+    eps = 2.2204e-16
+    hd = f1
+    hd = np.rot90(np.fft.fftshift(np.rot90(hd,2)),2)
+    h = np.fft.fftshift(np.fft.ifft2(hd))
+    h = np.real(h) 
+    h = np.rot90(h,2)
+
+    return h
+
+
+def csf_chrom(N_X,N_Y,fs):
+
+    '''
+    % CSF_CHROM computes the spatial CSFs for the chromatic channels RG and YB
+    % approximately reproducing the data in K. Mullen 85 Vis. Res. paper.
+    %
+    %  fs = sampling frequency (in cl/deg).
+    %  N = size of the square discrete domain (in pixels).
+    % 
+    '''
+
+    fx, fy=get_grids(N_X, N_Y)
+    fx=fx*fs/2
+    fy=fy*fs/2  
+    F = frequency_radius(fx, fy, clean_division=True)
+    
+    csfrg=np.zeros((N_X,N_Y))
+    csfyb=np.zeros((N_X,N_Y))
+    
+    for i in range (1, N_X):
+        [iaf_rg,csf_c]=iafrg(F[i,:],0.1,1,[0,0,0])
+        csfrg[i,:]=csf_c       
+        [iaf_yb,csf_c]=iafyb(F[i,:],0.1,1,[0,0,0])
+        csfyb[i,:]=csf_c
+
+    fact_rg=0.75
+    fact_yb=0.55 
+    max_CSF_achro=201.3
+
+    csfrg=fact_rg*max_CSF_achro*csfrg/np.max(csfrg)
+    csfyb=fact_yb*max_CSF_achro*csfyb/np.max(csfyb)
+
+    return csfrg, csfyb
+
+def iafrg(f,C,facfrec,nolin):
+    
+    '''
+    iafrg calculates the values ​​of the information allocation function
+    for the RG channel (experim) in the discrete frequency domain and
+    contrasts defined by row vectors (f, C) of lengths m and n respectively-
+    
+    iafrg gives an m * n matrix such that in each row, it contains the values
+    of the function for the different contrasts with fixed f
+    
+    
+    nolin should be 2D dimensional. e.g. nolin=[nolin nolin]
+    '''
+    
+    f = facfrec*f
+    f=np.reshape(f, (1, f.shape[0]))
+
+    f=f+0.00001*(f==0)
+    C=C+0.0000001*(C==0)
+
+    lf=len(f)
+    lc=1
+
+    iaf=np.zeros((lf,lc))
+    p=[0.0840,0.8345,0.6313,0.2077]
+
+    nolini=nolin
+    nolin=nolini[1]
+
+    if ((nolini[0]==0) and (nolini[1]==1)):
+        nolin=1
+     
+    par=[-55.94, 6.64]
+    
+    if nolin==1:
+        for i in range (1, lf):
+            y=1/(1+np.exp((f[i]-par[0])/par[1]))
+            cu=1/(100*2537.9*y)
+            ace[i,:]=umbinc3(C,cu,p(1),p(2),p(3),p(4))
+        iaf=1./ace
+    else:
+        y=1/(1+np.exp((f-par[0])/par[1]))    
+        iaf=100*2537.9*y
+        iaf=iaf.T*np.ones((1,1))
+    csfrg=iaf[:,0].T
+
+    if ((nolini[0]==0) and (nolini[1]==1)):
+        s=iaf.shape
+        iafc=np.sum(iaf.T).T
+        iaf=iafc*np.ones((1,s[1]))
+                         
+    return iaf, csfrg
+
+
+def iafyb(f,C,facfrec,nolin):
+    '''
+    iafyb calculates the values ​​of the information allocation function
+    for channel YB (experim) in the discrete frequency domain and
+    contrasts defined by row vectors (f, C) of lengths m and n respectively.
+
+    iafyb gives an m * n matrix such that in each row, it contains the values
+    of the function for the different contrasts (with fixed f)
+    (for the csf given to be correct, the first contrast must be close to 0)
+    '''
+        
+    f=facfrec*f
+    f=np.reshape(f, (1, f.shape[0]))
+
+    f=f+0.00001*(f==0)
+    C=C+0.0000001*(C==0)
+
+    lf=len(f)
+    lc=1
+
+    iaf=np.zeros((lf,lc))
+    #p=[0.0840 0.8345 0.6313 0.2077]
+    p=[0.1611,1.3354,0.3077,0.7746]
+    
+    nolini=nolin
+    nolin=nolini[1]
+
+    if ((nolini[0]==0) and (nolini[1]==1)):
+        nolin=1      
+
+    par=[-31.72, 4.13]
+    
+    if nolin==1:
+        for i in range (1, lf):
+            y=1/(1+np.exp((f[i]-par[0])/par[1]))
+            cu=1/(100*719.7*y)
+            ace[i,:]=umbinc3(C,cu,p(1),p(2),p(3),p(4))
+        iaf=1./ace
+    else:
+        y=1/(1+np.exp((f-par[0])/par[1]))
+        iaf=100*719.7*y
+        iaf=iaf.T*np.ones((1,1))
+        
+    csfyb=iaf[:,0].T
+
+    if ((nolini[0]==0) and (nolini[1]==1)):
+        s=iaf.shape
+        iafc=np.sum(iaf.T).T
+        iaf=iafc*np.ones((1,s[1]))
+          
+    return iaf, csfyb
+
+
+def CSF_Delay(x, nfreq):
+    '''
+    Contrast Sensitivity Function implemented with Delay version.
+    
+    The CSF measures the sensitivity of human visual system to the various frequencies of visual stimuli, 
+    Here we apply an adjusted CSF model given by:
+
+    The mathmatic equation of CSF located in my CortexComputing notebook(Random section)
+
+    Input:
+        x - Define size of domain, float
+        nfreq - Fourier frequency, float
+
+    Output:
+        CSF -  Fourier Space of CSF, 2darray
+    '''
+
+    params=[0.7, 7.8909, 0.9809, 2.6, 0.0192, 0.114, 1.1]
+
+    N_x=nfreq
+    N_x_=np.linspace(0, N_x, x+1)-nfreq/2
+    N_x_up=np.ceil(N_x_[:-1])
+
+    [xplane,yplane]=np.meshgrid(N_x_up, N_x_up)
+    plane=(xplane+1j*yplane)  
+    radfreq=np.abs(plane)	
+
+    s=(1-params[0])/2*np.cos(4*np.angle(plane))+(1+params[0])/2
+    radfreq=radfreq/s
+    csf = params[3]*(params[4]+params[5]*radfreq)*np.exp(-(params[5]*radfreq)**params[6])
+    f = radfreq < params[1]
+    csf[f] = params[2]
+    return csf
+
+def plot_wavelet_ql(fW, Jmin=0):
+  """
+      plot_wavelet - plot wavelets coefficients.
+
+      U = plot_wavelet(fW, Jmin):
+  """
+  def rescaleWav(A):
+      v = abs(A).max()
+      B = A.copy()
+      if v > 0:
+          B = .5 + .5 * A / v
+      return B
+  
+  n = fW[0,0].shape[1]
+  Jmax = int(np.log2(n)) - 1
+  U = fW[0,0].copy()
+  for j in np.arange(Jmax, Jmin - 1, -1):
+      U[:2 ** j:,    2 ** j:2 **
+          (j + 1):] = rescaleWav(U[:2 ** j:, 2 ** j:2 ** (j + 1):])
+      U[2 ** j:2 ** (j + 1):, :2 **
+        j:] = rescaleWav(U[2 ** j:2 ** (j + 1):, :2 ** j:])
+      U[2 ** j:2 ** (j + 1):, 2 ** j:2 ** (j + 1):] = (
+          rescaleWav(U[2 ** j:2 ** (j + 1):, 2 ** j:2 ** (j + 1):]))
+  U[:2 ** j:, :2 ** j:] = nt.rescale(U[:2 ** j:, :2 ** j:])
+  imageplot(U)
+  for j in np.arange(Jmax, Jmin - 1, -1):
+      plt.plot([0, 2 ** (j + 1)], [2 ** j, 2 ** j], 'r')
+      plt.plot([2 ** j, 2 ** j], [0, 2 ** (j + 1)], 'r')
+  plt.plot([0, n], [0, 0], 'r')
+  plt.plot([0, n], [n, n], 'r')
+  plt.plot([0, 0], [0, n], 'r')
+  plt.plot([n, n], [0, n], 'r')
+  return U
+
+
+def SaliencyEnhance(smap):
+    
+    temp_row, temp_col = smap.shape
+    (salient_row, salient_col, salient_value) = np.argwhere(smap > 0.8)
+    salient_distance = np.zeros(temp_row, temp_col)
+    for temp_i in range(1, temp_row):
+        for temp_j in range (1, temp_col):
+            salient_distance[temp_i,temp_j] = np.min(np.sqrt((temp_i - salient_row)**2 + (temp_j - salient_col)**2))
+       
+    salient_distance = mat2gray(salient_distance)
+    smap = np.dot(smap, (1 - salient_distance))
+
+
+def Saliency_Map(img_Path, save_Path):
     '''
     Human visual inspired multi-layer LNL model. In this model, the main component
     are:
 
     Nature Image --> VonKries Adaptation --> ATD  (Color processing phase)
-    Wavelets Transform --> Contrast sensivity function (CSF) --> Divisive
-    Normalization(DN)  --> Noise(Gaussian or Poisson)
+    Wavelets Transform --> Contrast sensivity function (CSF)
 
     Evalute of model with TID2008 database.
 
@@ -1087,271 +1507,264 @@ if __name__ == '__main__':
     Each layer response, float
     '''
     wavelets_types='DWT'
-    threshold=False
+    threshold=True
     adaptation_gain_control=False
     statis_wavlets=True
     saturation =False
-    dim = (256, 256)
     g_sa = 0.5
     epsilon_sa = 0.1
     k_sa = 1
+    fs=1024  #1804
     deltat_sa = 1e-5
     g_sa = np.array(g_sa).astype('float32')
     epsilon_sa = np.array(epsilon_sa).astype('float32')
+    dim = (682, 682)
+    mark_saliency=False
+    gaussian_blur=True
+    gaussian_filter=False
     ############################################################################
     #Load image and preprocess
     ############################################################################  
-    image=cv2.imread('/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/imgs/tower.jpeg', cv2.IMREAD_UNCHANGED)
-    print('Original Dimensions : ', image.shape)
-    im= cv2.resize(image, dim, interpolation = cv2.INTER_AREA)
-    print('Resized Dimensions : ',im.shape)
-    im=im/255
-    b,g,r = cv2.split(im)      
-    rgb_img = cv2.merge([r,g,b])     
-    
-    plt.figure(figsize=(4,5))
-    plt.imshow(rgb_img)
-    plt.axis('off')
-    plt.title("Orignal")
-    plt.tight_layout()
-    plt.show()
-   #---------------------------------------------------------------
-    # Gamma correction with monit and eye nonlinearlity
-    #---------------------------------------------------------------
-    im_gamma=exposure.adjust_gamma(im, gamma=0.6)
-    b,g,r = cv2.split(im_gamma)      
-    img_gamma_rgb = cv2.merge([r,g,b])     
-    
-    plt.figure(figsize=(4,5))
-    plt.imshow(img_gamma_rgb)
-    plt.axis("off")
-    plt.tight_layout()
-    plt.title("GammaCorrection")
-    plt.show()
-    #---------------------------------------------------------------
-    # VonKries adaptation
-    #---------------------------------------------------------------
-    if adaptation_gain_control==True:
-        M = np.asarray([[.40024,0.7076,-.08081], [-.2263,1.16532,0.0457],[0,0,.91822]])
-        int_M = inv(M)
-        XYZ2BGR = np.asarray([[3.240479,-1.53715,-0.498535], [-0.969256,1.875991,0.041556],[0.055648,-0.204043,1.057311]])
-        BGR2XYZ = inv(XYZ2BGR)
+    for filename in os.listdir(img_Path):
+        or_image = cv2.imread(os.path.join(img_Path, filename))
+        image= cv2.resize(or_image, dim, interpolation = cv2.INTER_AREA)
+        im=image/255
+        b,g,r = cv2.split(im)      
+        rgb_img = cv2.merge([r,g,b])     
+        #---------------------------------------------------------------
+        # Gamma correction with monit and eye nonlinearlity
+        #---------------------------------------------------------------
+        im_gamma=exposure.adjust_gamma(rgb_img, gamma=0.4)
+        b,g,r = cv2.split(im_gamma)      
+        img_gamma_rgb = cv2.merge([r,g,b])
+        #---------------------------------------------------------------
+        # VonKries adaptation
+        #---------------------------------------------------------------
+        if adaptation_gain_control==True:
+            M = np.asarray([[.40024,0.7076,-.08081], [-.2263,1.16532,0.0457],[0,0,.91822]])
+            int_M = inv(M)
+            XYZ2BGR = np.asarray([[3.240479,-1.53715,-0.498535], [-0.969256,1.875991,0.041556],[0.055648,-0.204043,1.057311]])
+            BGR2XYZ = inv(XYZ2BGR)
 
-        L2 = 0.6
-        M2 = 0.6
-        S2 = 0.6
+            L2 = 0.6
+            M2 = 0.6
+            S2 = 0.6
 
-        width = im_gamma.shape[0]
-        height = im_gamma.shape[1]
-        img_LMS = np.zeros(im_gamma.shape)
-        img_XYZ = np.zeros(im_gamma.shape)
-        img_XYZ_corrected = np.zeros(im_gamma.shape)
-        img_corrected = np.zeros(im_gamma.shape)
+            width = im_gamma.shape[0]
+            height = im_gamma.shape[1]
+            img_LMS = np.zeros(im_gamma.shape)
+            img_XYZ = np.zeros(im_gamma.shape)
+            img_XYZ_corrected = np.zeros(im_gamma.shape)
+            img_corrected = np.zeros(im_gamma.shape)
 
-        for x in trange(width, desc='Running'):
-            for y in trange(height, desc='Running'):
-                img_XYZ[x,y,:] = np.matmul(BGR2XYZ,im_gamma[x,y,:]/255)
-                
-        for x in trange(width, desc='Running'):
-            for y in trange(height, desc='Running'):
-                img_LMS[x,y,:] = np.matmul(M,img_XYZ[x,y,:])
+            for x in trange(width, desc='Running'):
+                for y in trange(height, desc='Running'):
+                    img_XYZ[x,y,:] = np.matmul(BGR2XYZ,im_gamma[x,y,:]/255)
+                    
+            for x in trange(width, desc='Running'):
+                for y in trange(height, desc='Running'):
+                    img_LMS[x,y,:] = np.matmul(M,img_XYZ[x,y,:])
 
-        L_max = img_LMS[:,:,0].max()
-        M_max = img_LMS[:,:,1].max()
-        S_max = img_LMS[:,:,2].max()
+            L_max = img_LMS[:,:,0].max()
+            M_max = img_LMS[:,:,1].max()
+            S_max = img_LMS[:,:,2].max()
 
-        img_LMS[:,:,0] = img_LMS[:,:,0]/L_max
-        img_LMS[:,:,1] = img_LMS[:,:,1]/M_max
-        img_LMS[:,:,2] = img_LMS[:,:,2]/S_max
+            img_LMS[:,:,0] = img_LMS[:,:,0]/L_max
+            img_LMS[:,:,1] = img_LMS[:,:,1]/M_max
+            img_LMS[:,:,2] = img_LMS[:,:,2]/S_max
 
-        img_LMS[:,:,0] = img_LMS[:,:,0]*L2
-        img_LMS[:,:,1] = img_LMS[:,:,1]*M2
-        img_LMS[:,:,2] = img_LMS[:,:,2]*S2
+            img_LMS[:,:,0] = img_LMS[:,:,0]*L2
+            img_LMS[:,:,1] = img_LMS[:,:,1]*M2
+            img_LMS[:,:,2] = img_LMS[:,:,2]*S2
 
-        for x in trange(width, desc='Running'):
-            for y in trange(height, desc='Running'):
-                img_XYZ_corrected[x,y,:] = np.matmul(int_M,img_LMS[x,y,:])
+            for x in trange(width, desc='Running'):
+                for y in trange(height, desc='Running'):
+                    img_XYZ_corrected[x,y,:] = np.matmul(int_M,img_LMS[x,y,:])
+            
+            for x in trange(width, desc='Running'):
+                for y in trange(height, desc='Running'):
+                    img_corrected[x,y,:] = np.matmul(XYZ2BGR,img_XYZ_corrected[x,y,:])
+
+            results_RGB = np.zeros(img_XYZ.shape)
+            results_RGB[:,:,0] = img_corrected[:,:,2]
+            results_RGB[:,:,1] = img_corrected[:,:,1]
+            results_RGB[:,:,2] = img_corrected[:,:,0]
+            VonKries=(255*np.clip(results_RGB,0,1)).astype('uint8') 
+
+        xyz_=rgb2xyz(img_gamma_rgb) 
+        IOU=xyz2atd(xyz_)
+        #---------------------------------------------------------------
+        # Weber law application
+        #---------------------------------------------------------------
+        waber_img=waber(IOU[:,:,0], lambdaValue=1)
+        Intensity_Conspicuity = waber_img
+        RG_Conspicuity = IOU[:,:,1] 
+        YB_Conspicuity = IOU[:,:,2]
         
-        for x in trange(width, desc='Running'):
-            for y in trange(height, desc='Running'):
-                img_corrected[x,y,:] = np.matmul(XYZ2BGR,img_XYZ_corrected[x,y,:])
+        #DWT
+        ############################################################################
+        # Build Pyramid with DWT
+        ############################################################################
+        max_lev = 3
+        level=max_lev   
+        shape=waber_img.shape
+        
+        ca = pywt.wavedec2(waber_img, 'db2', mode='periodization', level=level)
+        ca[0] /= np.abs(ca[0]).max()
+        for detail_level in trange(level, desc='Running'):
+            ca[detail_level + 1] = [d/np.abs(d).max() for d in ca[detail_level + 1]]
+        arra, slicesa = pywt.coeffs_to_array(ca)
 
-        results_RGB = np.zeros(img_XYZ.shape)
-        results_RGB[:,:,0] = img_corrected[:,:,2]
-        results_RGB[:,:,1] = img_corrected[:,:,1]
-        results_RGB[:,:,2] = img_corrected[:,:,0]
-        VonKries=(255*np.clip(results_RGB,0,1)).astype('uint8') 
+        crg = pywt.wavedec2(RG_Conspicuity, 'db2', mode='periodization', level=level)
+        crg[0] /= np.abs(crg[0]).max()
+        for detail_level in trange(level, desc='Running'):
+            crg[detail_level + 1] = [d/np.abs(d).max() for d in crg[detail_level + 1]]
+        arrrg, slicesrg = pywt.coeffs_to_array(crg)
+        
+        cyb = pywt.wavedec2(YB_Conspicuity, 'db2', mode='periodization', level=level)
+        cyb[0] /= np.abs(cyb[0]).max()
+        for detail_level in trange(level, desc='Running'):
+            cyb[detail_level + 1] = [d/np.abs(d).max() for d in cyb[detail_level + 1]]
+        arryb, slicesyb = pywt.coeffs_to_array(cyb)
+        ##################################################
+        # Wavelet energy map
+        ##################################################
+        Energ_levels_a=[]
+        for i in tqdm(range(1, max_lev+1), desc='Running'):
+            for j in tqdm(range(max_lev), desc='Running'):
+                Energ_level_a=np.abs(ca[i][j])**2
+                Energ_levels_a.append(Energ_level_a)
+        
+        Energ_levels_rg=[]
+        for i in tqdm(range(1, max_lev+1), desc='Running'):
+            for j in tqdm(range(max_lev), desc='Running'):
+                Energ_level_rg=np.abs(crg[i][j])**2
+                Energ_levels_rg.append(Energ_level_rg)
+        
+        Energ_levels_yb=[]
+        for i in tqdm(range(1, max_lev+1), desc='Running'):
+            for j in tqdm(range(max_lev), desc='Running'):
+                Energ_level_yb=np.abs(cyb[i][j])**2
+                Energ_levels_yb.append(Energ_level_yb)
+        #---------------------------------------------------
+        #Energy map with grid show
+        #---------------------------------------------------
+        Init_en_a=np.abs(ca[0])**2
+        Eng_grid_a=[Init_en_a, Energ_levels_a[:3], Energ_levels_a[3:6], Energ_levels_a[6:9]]
 
-        plt.figure(figsize=(4,5))
-        plt.imshow((VonKries),vmin=results_RGB.min(),vmax=results_RGB.max())
-        plt.axis("off")
-        plt.title("VonKries")
-        plt.tight_layout()
-        plt.show()
-    #----------------------------------------------------------------
-    # Chromatic adaptation with different methods
-    #----------------------------------------------------------------
-    else:
-        print(sorted(colour.CHROMATIC_ADAPTATION_TRANSFORMS))
-        # Test view condition
-        XYZ_w = np.array([234, 240, 220])
-        # Reference view condition
-        XYZ_wr = np.array([224, 187, 70]) 
-        method = 'Von Kries'
-        VonKries=colour.adaptation.chromatic_adaptation_VonKries(rgb2xyz(im_gamma), XYZ_w, XYZ_wr, method)
-        try:
-            print(VonKries.shape)
-        except ValueError:
-            print('Dimentional error!') 
+        Eng_grid_a[0] /= np.abs(Eng_grid_a[0]).max()
+        for detail_level in trange(level, desc='Running'):
+            Eng_grid_a[detail_level + 1] = [d/np.abs(d).max() for d in Eng_grid_a[detail_level + 1]]
+        arr_a, slices_a = pywt.coeffs_to_array(Eng_grid_a)
 
-        fig=plt.figure(figsize=(4,5))
-        fig.add_subplot(111)
-        plt.imshow(VonKries)
-        plt.title('VonKriesAdaptation')
-        plt.tight_layout()
-        plt.axis('off')
-        plt.show()
-    #---------------------------------------------------------------
-    # Colorsapce conversation- destation ATD
-    # Visualization channel with fake color
-    #---------------------------------------------------------------
-    plt.figure(figsize=(10,8))
-    plt.subplots_adjust(wspace=0, hspace=0)
+        Init_en_rg=np.abs(crg[0])**2
+        Eng_grid_rg=[Init_en_rg, Energ_levels_rg[:3], Energ_levels_rg[3:6], Energ_levels_rg[6:9]]
+        Eng_grid_rg[0] /= np.abs(Eng_grid_rg[0]).max()
+        for detail_level in trange(level, desc='Running'):
+            Eng_grid_rg[detail_level + 1] = [d/np.abs(d).max() for d in Eng_grid_rg[detail_level + 1]]
+        arr_rg, slices_rg = pywt.coeffs_to_array(Eng_grid_rg)
+       
+        Init_en_yb=np.abs(cyb[0])**2
+        Eng_grid_yb=[Init_en_yb, Energ_levels_yb[:3], Energ_levels_yb[3:6], Energ_levels_yb[6:9]]
 
-    xyz_=rgb2xyz(VonKries)
-    IOU=xyz2atd(xyz_)
+        Eng_grid_yb[0] /= np.abs(Eng_grid_yb[0]).max()
+        for detail_level in trange(level, desc='Running'):
+            Eng_grid_yb[detail_level + 1] = [d/np.abs(d).max() for d in Eng_grid_yb[detail_level + 1]]
+        arr_yb, slices_yb = pywt.coeffs_to_array(Eng_grid_yb)
+        
+        #---------------------------------------------------
+        #Energy map with flatten map
+        #---------------------------------------------------
+        fin_a=Energ_levels_a[0]+Energ_levels_a[1]+Energ_levels_a[2]
+        fina_a=Energ_levels_a[3]+Energ_levels_a[4]+Energ_levels_a[5]
+        finb_a=Energ_levels_a[6]+Energ_levels_a[7]+Energ_levels_a[8]
+        ener_a=[fin_a, fina_a, finb_a]
+        
+        fin_rg=Energ_levels_rg[0]+Energ_levels_rg[1]+Energ_levels_rg[2]
+        fina_rg=Energ_levels_rg[3]+Energ_levels_rg[4]+Energ_levels_rg[5]
+        finb_rg=Energ_levels_rg[6]+Energ_levels_rg[7]+Energ_levels_rg[8]
+        ener_rg=[fin_rg, fina_rg, finb_rg]
+        
+        fin_yb=Energ_levels_yb[0]+Energ_levels_yb[1]+Energ_levels_yb[2]
+        fina_yb=Energ_levels_yb[3]+Energ_levels_yb[4]+Energ_levels_yb[5]
+        finb_yb=Energ_levels_yb[6]+Energ_levels_yb[7]+Energ_levels_yb[8]
+        ener_yb=[fin_yb, fina_yb, finb_yb]
+        
+        fin_a_up = cv2.resize(scipy.ndimage.zoom(fin_a, 8, order=2), (682, 682), interpolation = cv2.INTER_AREA)
+        fina_a_up = cv2.resize(scipy.ndimage.zoom(fina_a, 4, order=2), (682, 682), interpolation = cv2.INTER_AREA)
+        finb_a_up = scipy.ndimage.zoom(finb_a, 2, order=2)
+        
+        fin_a_up =  np.nan_to_num(fin_a_up) + np.nan_to_num(fina_a_up) + np.nan_to_num(finb_a_up) 
+        
+        fin_rg_up = cv2.resize(scipy.ndimage.zoom(fin_rg, 8, order=2), (682, 682), interpolation = cv2.INTER_AREA)
+        fina_rg_up = cv2.resize(scipy.ndimage.zoom(fina_rg, 4, order=2), (682, 682), interpolation = cv2.INTER_AREA)
+        finb_rg_up = scipy.ndimage.zoom(finb_rg, 2, order=2)
+        
+        finb_rg_up = np.nan_to_num(fin_rg_up) + np.nan_to_num(fina_rg_up) + np.nan_to_num(finb_rg_up)   
 
-    plt.subplot(1, 3, 1)
-    plt.imshow(IOU[:,:,0],cmap='gray')
-    plt.axis('off')
-    plt.title("A")
+        fin_yb_up = cv2.resize(scipy.ndimage.zoom(fin_yb, 8, order=2), (682, 682), interpolation = cv2.INTER_AREA)
+        fina_yb_up = cv2.resize(scipy.ndimage.zoom(fina_yb, 4, order=2), (682, 682), interpolation = cv2.INTER_AREA)
+        finb_yb_up = scipy.ndimage.zoom(finb_yb, 2, order=2)
+        
+        finb_yb_up =  np.nan_to_num(fin_yb_up) + np.nan_to_num(fina_yb_up) + np.nan_to_num(finb_yb_up)
+        #--------------------------------------------------
+        # Contrast sensivity function
+        #---------------------------------------------------
+        # Discrete Fourier domain
+        N_X=fin_yb_up.shape[1]
+        N_Y=fin_yb_up.shape[1]
+        F1, F2 = get_grids(N_X, N_Y)
+        f=F1*fs/2    
+        h,Csfsso,csft,oe = csfsso(fs,N_X, N_Y)
+        csfrg, csfyb = csf_chrom(N_X,N_Y,fs)
+       
+        Saliency_A = np.double (np.real(np.fft.ifft2(np.fft.ifftshift(np.fft.fftshift(np.fft.fft2(fin_a_up.real))* Csfsso))))
+        Saliency_RG = np.double (np.real(np.fft.ifft2(np.fft.ifftshift(np.fft.fftshift(np.fft.fft2(finb_rg_up.real))* csfrg))))
+        Saliency_YB = np.double (np.real(np.fft.ifft2(np.fft.ifftshift(np.fft.fftshift(np.fft.fft2(finb_yb_up.real))* csfyb))))
+        
+        radius = 341
+        y,x = np.ogrid[-radius:radius,-radius:radius]
+        mask = np.sqrt(np.float32(x**2+y**2))
+        make = mask/mask.max()
+        mask = 0.75*np.abs(mask-1)+0.25
 
-    plt.subplot(1, 3, 2)
-    plt.imshow(IOU[:,:,1],cmap='gray')
-    plt.axis('off')
-    plt.title("T")
+        
+        Saliency_V = np.nan_to_num((Saliency_A)) + np.nan_to_num((Saliency_RG)) + np.nan_to_num((Saliency_YB*12))
 
-    plt.subplot(1, 3, 3)
-    plt.imshow(IOU[:,:,2],cmap='gray')
-    plt.axis('off')
-    plt.title("D")
-    plt.tight_layout()
-    plt.show()
-     #---------------------------------------------------------------
-    # Weber law application
-    #---------------------------------------------------------------
-    waber_img=waber(IOU[:,:,0], lambdaValue=0.6)
-    plt.figure(figsize=(4,5))
-    plt.imshow(waber_img, cmap='gray')
-    plt.axis('off')
-    plt.title('brightness')
-    plt.tight_layout()
-    plt.show()
-      
-  # 5) -- DWT
-  ############################################################################
-  # Build Pyramid with DWT
-  ############################################################################
-    max_lev = 3
-    level=max_lev   
-    shape=waber_img.shape
-    c = pywt.wavedec2(waber_img, 'db2', mode='periodization', level=level)
-    c[0] /= np.abs(c[0]).max()
-    for detail_level in trange(level, desc='Running'):
-        c[detail_level + 1] = [d/np.abs(d).max() for d in c[detail_level + 1]]
+        if gaussian_blur==True:
+            Saliency_V = cv2.GaussianBlur(Saliency_V,(5,5),3)
+        if gaussian_filter==True:
+            kernel = np.ones((6,6), np.float32) / -9.0
+            kernel[1][1] = 5.0/9.0
+            out = cv2.filter2D(Saliency_V.astype(np.float32), -1, kernel)
+            Saliency_V = (out - out.min()) / (out.max() - out.min())
+            Saliency_V = Saliency_V *255
+        if mark_saliency==True:
+            Saliency_V = markMaxima(Saliency_V)
 
-    arr, slices = pywt.coeffs_to_array(c)
-    plt.figure(figsize=(8,6))
-    plt.imshow(arr, cmap='gray')
-    plt.axis('off')
-    plt.tight_layout()
-    plt.show()
-
-    ##################################################
-    # Wavelet energy map
-    ##################################################
-    Energ_levels=[]
-    for i in tqdm(range(1, max_lev+1), desc='Running'):
-        for j in tqdm(range(max_lev), desc='Running'):
-            Energ_level=np.abs(c[i][j])**2
-            Energ_levels.append(Energ_level)
-    #---------------------------------------------------
-    #Energy map with grid show
-    #---------------------------------------------------
-    Init_en=np.abs(c[0])**2
-    Eng_grid=[Init_en, Energ_levels[:3], Energ_levels[3:6], Energ_levels[6:9]]
-
-    Eng_grid[0] /= np.abs(Eng_grid[0]).max()
-    for detail_level in trange(level, desc='Running'):
-        Eng_grid[detail_level + 1] = [d/np.abs(d).max() for d in Eng_grid[detail_level + 1]]
-    arr_, slices_ = pywt.coeffs_to_array(Eng_grid)
-    plt.figure(figsize=(8,6))
-    plt.imshow(arr_, cmap='gray')
-    plt.axis('off')
-    plt.tight_layout()
-    plt.show()
-    #---------------------------------------------------
-    #Energy map with flatten map
-    #---------------------------------------------------
-    fin=Energ_levels[0]+Energ_levels[1]+Energ_levels[2]
-    fina=Energ_levels[3]+Energ_levels[4]+Energ_levels[5]
-    finb=Energ_levels[6]+Energ_levels[7]+Energ_levels[8]
-
-    plt.figure(figsize=(12,10))
-    plt.subplots_adjust(wspace=0.1)
-    ener_q=[fin, fina, finb]
-    for i in tqdm(range(len(ener_q)), desc='Running'):
-        plt.subplot(1,3,i+1)
-        plt.imshow(ener_q[i], cmap='gray')
-        plt.axis('off')
-    plt.show()
-    #---------------------------------------------------
-    #Saliency Map with UpSample Scale Together
-    #---------------------------------------------------
-    print(fin.shape)
-    print(fina.shape)
-    print(finb.shape)
-    fin_upsample = scipy.ndimage.zoom(fin, 4, order=0)
-    fina_upsample = scipy.ndimage.zoom(fina, 2, order=0)
-    print(fin_upsample.shape)
-    print(fina_upsample.shape)  
-    Saliency = fin_upsample + fina_upsample + finb 
-    plt.figure(figsize=(12,10))
-    plt.imshow(Saliency**1.2, cmap='gray')
-    plt.axis('off')
-    plt.title('Saliency Map')
-    plt.show()
-    #---------------------------------------------------
-    # DN
-    #---------------------------------------------------
-    Saliency = gray2rgb(Saliency)
-    Saliency = torch.Tensor([np.array(Saliency).transpose((2,0,1))])
-    DNs=DivisiveNormalization(Saliency,radius=2)
+        plt.imsave(os.path.join(save_Path ,filename), Saliency_V, cmap='gray')
+        
+if __name__ == '__main__':
     
-    ret = DNs[0].numpy().transpose((1,2,0))
-    ret = rgb2gray(ret)
-    DNs = (ret - ret.min())/(ret.max() - ret.min())   ## Scaled between 0 to 1 to see properly
-    
-    plt.figure(figsize=(12,10))
-    plt.imshow(DNs, cmap='gray')
-    plt.axis('off')
-    plt.title('Saliency Map')
-    plt.show()
+    datasets = ['MIT300', 'MIT1003',  'TORONTO', 'SID4VAM']
+    for dataset in datasets:
+                
+                print(dataset)
 
-    #---------------------------------------------------
-    # CSF
-    #---------------------------------------------------
-    
-    CSF_W=make_CSF(x=128, nfreq=4024)   #3024/4024
-    #CSF_W=make_csf_r(x=128, y=128, nfreq=64)   
-    Saliency_s = np.double (np.real(np.fft.ifft2(np.fft.ifftshift(np.fft.fftshift(np.fft.fft2(DNs.real))* CSF_W))))
-    
-    print('ccccccccccccccccccc')
-    print(np.max(Saliency_s))
-    print(np.min(Saliency_s))
-    
-    plt.figure(figsize=(12,10))
-    plt.imshow(Saliency_s, cmap='gray')
-    plt.axis('off')
-    plt.title('Saliency Map')
-    plt.show()
+                MIT300_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/WECSF/mit300/images/'
+                copy_to_path1 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/WECSF/mit300/smaps/'
+                Saliency_Map(MIT300_dataset,copy_to_path1) 
+
+                MIT1003_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/WECSF/mit1003/images/'
+                copy_to_path2 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/WECSF/mit1003/smaps/'
+                Saliency_Map(MIT1003_dataset, copy_to_path2)
+            
+                TORONTO_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/WECSF/toronto/images/'
+                copy_to_path3 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/WECSF/toronto/smaps/'
+                Saliency_Map(TORONTO_dataset,copy_to_path3)
+            
+                sid4vam_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/WECSF/sid4vam/images/'
+                copy_to_path4 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/WECSF/sid4vam/smaps/'
+                Saliency_Map(sid4vam_dataset, copy_to_path4)
+
+    print('DONE')

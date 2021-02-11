@@ -1206,7 +1206,7 @@ def Saliency_Map(img_path):
     adaptation_gain_control=False
     statis_wavlets=True
     saturation =False
-    dim = (682, 682)
+    #dim = (682, 682)
     g_sa = 0.5
     epsilon_sa = 0.1
     k_sa = 1
@@ -1224,10 +1224,6 @@ def Saliency_Map(img_path):
         im=im/255
         b,g,r = cv2.split(im)      
         rgb_img = cv2.merge([r,g,b])     
-        print('########################')
-        print('Step 1')
-        print('Load img!!!')
-        print('########################')
         #---------------------------------------------------------------
         # Gamma correction with monit and eye nonlinearlity
         #---------------------------------------------------------------
@@ -1238,10 +1234,6 @@ def Saliency_Map(img_path):
         #plt.imshow(im_gamma)
         #plt.axis('off')
         #plt.show()     
-        print('########################')
-        print('Step 2')
-        print('Gammma correction!!!')
-        print('########################')
         #---------------------------------------------------------------
         # VonKries adaptation
         #---------------------------------------------------------------
@@ -1295,12 +1287,6 @@ def Saliency_Map(img_path):
             results_RGB[:,:,1] = img_corrected[:,:,1]
             results_RGB[:,:,2] = img_corrected[:,:,0]
             VonKries=(255*np.clip(results_RGB,0,1)).astype('uint8') 
-
-            print('########################')
-            print('Step 3')
-            print('VonKries!!!')
-            print('########################')
-        
         #----------------------------------------------------------------
         # Chromatic adaptation with different methods
         #----------------------------------------------------------------
@@ -1328,24 +1314,11 @@ def Saliency_Map(img_path):
         
         xyz_=rgb2xyz(img_gamma_rgb)   #VonKries
         IOU=xyz2atd(xyz_)
-        print('########################')
-        print('Step 4')
-        print('ATD!!!')
-        print('########################')
         #---------------------------------------------------------------
         # Weber law application
         #---------------------------------------------------------------
         waber_img=waber(IOU[:,:,0], lambdaValue=0.5)
-        #plt.figure()
-        #plt.imshow(waber_img)
-        #plt.axis('off')
-        #plt.show()
-            
-        print('########################')
-        print('Step 5')
-        print('Weber law!!!')
-        print('########################')
-
+        
         #---------------------------------------------------------------
         # Normalized Feature Map
         #---------------------------------------------------------------
@@ -1372,12 +1345,6 @@ def Saliency_Map(img_path):
             c[detail_level + 1] = [d/np.abs(d).max() for d in c[detail_level + 1]]
 
         arr, slices = pywt.coeffs_to_array(c)
-
-        print('######################################')
-        print('Step 6')
-        print('Build pyramid with DWT!!!')
-        print('#####################################')
-
         ##################################################
         # Wavelet energy map
         ##################################################
@@ -1416,7 +1383,19 @@ def Saliency_Map(img_path):
         #plt.imshow(Saliency_s)
         #plt.show()
         #---------------------------------------------------
-        # Feature Integate Theory 
+        #Saliency Map with UpSample Scale Together
+        #---------------------------------------------------
+        fin_upsample = scipy.ndimage.zoom(fin, 4, order=2)
+        fina_upsample = scipy.ndimage.zoom(fina, 2, order=2)
+        Saliency_s = N(fin_upsample[:341,:341]) + N(fina_upsample[:341,:341]) + N(finb)
+        Saliency_s = N(scipy.ndimage.zoom(Saliency_s, 2, order=2))
+        Saliency_s = Saliency_s**4.2
+        #plt.figure()
+        #plt.imshow(Saliency_s)
+        #plt.show()
+
+        #---------------------------------------------------
+        # Contrast sensivity function
         #---------------------------------------------------
         CSF_W=make_CSF(x=682, nfreq=1024)   #3024/4024
         Saliency_s = np.double (np.real(np.fft.ifft2(np.fft.ifftshift(np.fft.fftshift(np.fft.fft2(Saliency_s.real))* CSF_W))))
@@ -1429,8 +1408,8 @@ def Saliency_Map(img_path):
         #print(Saliency_V.shape)
         #Saliency = markMaxima(Saliency_V)       
          
-        #copy_to_path1 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/MIT1003/SALIENCY_MAPS_QL/'
-        #cv2.imwrite(os.path.join(copy_to_path1 ,filename), Saliency_V) 
+        copy_to_path1 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/MIT1003/SALIENCY_MAPS_QL/'
+        cv2.imwrite(os.path.join(copy_to_path1 ,filename), Saliency_V) 
         
         #copy_to_path2 = '/home/qiang/QiangLi/Python_Utils_Functional/MIT300_dataset/SALIENCY_MAPS_QL/'
         #cv2.imwrite(os.path.join(copy_to_path2 ,filename), Saliency_V) 
@@ -1439,8 +1418,8 @@ def Saliency_Map(img_path):
         #copy_to_path3 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/TORONTO/SALIENCY_MAPS_QL/'
         #cv2.imwrite(os.path.join(copy_to_path3 ,filename), Saliency_V) 
         
-        copy_to_path4 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/WECSF/'
-        cv2.imwrite(os.path.join(copy_to_path4 ,filename), Saliency_V) 
+        #copy_to_path4 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/WECSF/'
+        #cv2.imwrite(os.path.join(copy_to_path4 ,filename), Saliency_V) 
         
 
         #Saliency_density = convert_saliency_map_to_density(Saliency_V*255, minimum_value=1.0)
@@ -1449,8 +1428,8 @@ def Saliency_Map(img_path):
         
 if __name__ == '__main__':
     
-    #MIT1003_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/MIT1003/STIMULI'
-    #Saliency_Map(MIT1003_dataset)
+    MIT1003_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/MIT1003/STIMULI'
+    Saliency_Map(MIT1003_dataset)
     
     #MIT300_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/MIT300_dataset/BenchmarkIMAGES'
     #Saliency_Map(MIT300_dataset)
@@ -1458,8 +1437,8 @@ if __name__ == '__main__':
     #TORONTO_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/TORONTO/fixdens/Original_Image_Set'
     #Saliency_Map(TORONTO_dataset)
 
-    sid4vam_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/STIMULI'
-    Saliency_Map(sid4vam_dataset)
+    #sid4vam_dataset = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/STIMULI'
+    #Saliency_Map(sid4vam_dataset)
 
 
     print('DONE')

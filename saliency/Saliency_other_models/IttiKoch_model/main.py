@@ -18,17 +18,17 @@ from tqdm import trange
 
 # main
 if __name__ == '__main__':
-    img_path = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/STIMULI/'
+    img_path = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/SID4VAM/saliency-master/saliency-master/input/images/toronto/'
     #path1 = '/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/saliency/Saliency_other_models/IttiKoch_model/IttiKoch_Result'
     #path2 = '/home/qiang/QiangLi/Python_Utils_Functional/BioMulti-L-NL-Model/saliency/Saliency_other_models/AIM_model/AIM_Result'
-    path3 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/sid4vam/ITT/'
-    for filename in os.listdir(img_path):
-        #print(filename)
+    path3 = '/home/qiang/QiangLi/Python_Utils_Functional/FixaTons/SID4VAM/saliency-master/saliency-master/input/smaps/toronto/ITT/'
+    for filename in os.listdir(img_path):	
+        print(filename)
         img = cv2.imread(os.path.join(img_path, filename))
         #cv2.imshow(filename, img)
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
-        img = cv2.resize(img, (682, 682))
+        #img = cv2.resize(img, (682, 682))
         imgsize = img.shape
         img_width  = imgsize[1]
         img_height = imgsize[0]

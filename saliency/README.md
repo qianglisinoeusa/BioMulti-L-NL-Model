@@ -1,65 +1,125 @@
-# FixaTons
-A collection of Human FixationsDatasets and Metrics for Scanpath Similarity
+### An HVS-Oriented Saliency Map Prediction Model
 
-## Citations
-If you intend to use this collection of datasets on your research, please cite the technical report
+<center>
+<img width=1000 height=350 src='imgs/MIT1003.png'><br/>
+</center>
 
-- FixaTons technical report: https://arxiv.org/abs/1802.02534
+#The biological possible multi-layer saliency prediction model
 
-and also, all the correspondent pubblications for the dataset included:
+##Digitial Brain Visual Computing Version 2.0(Complex and Alpha Version)
 
+Human visual Cortex inspired multi-layer LNL model. In this model, the main components are:
 
-- MIT1003: http://people.csail.mit.edu/tjudd/WherePeopleLook/Docs/wherepeoplelook.pdf
+<p>Nature Image --> VonKries Adaptation --> ATD  (Color opponent channel)
+Wavelets Transform --> Wavelets Energy Map --> Contrast sensivity function (CSF) --> Saliency Prediction</p>
 
- Authors of compatible datasets are encouraged to add them to this collection. Simply send an email to the corresponding author of this report along with an authorization to redistribute that data. Below, the list of datasets currently added to the collection.
+<p>This model derivated two version script： Matlab, Python. In the future, I
+want to implemented all of these code on C++ or Java. If our goal is 
+simulate of primate brain, we need to implement all everything to High 
+performance Computer (HPC) with big framework architecture(C/C++/Java).
+</p>
+ 
 
-    
-## Download FixaTons
+#### Python Alpha Version
 
-- Clone or download the folder with the code
-- Download the zip file from https://drive.google.com/file/d/16i3GItnUAkWfATGFDF5qCqJbZFTCyWHA/ and extract its content in the same folder with the code
+I. Datasets:<br/>
 
-## Structure of FixaTons
-
-________________________________________________________________________________
-
-- FixaTons
-
-    - DATASET_NAME
-
-        - STIMULI : contains original images.
-                  They can have different file format (jpg, jpeg, png,...)
-
-        - SCANPATHS : contains one folder for each image
-
-            - IMAGE_ID :
-                  it contains one file for each scanpath of that image
-                  scanpaths are matrices
-                  rows of this matrices describe fixations
-                  each fixation is of the form :
-                  [x-pixel, y-pixel, initial time, final time]
-                  Times are in seconds.
-
-        - FIXATION_MAPS : contains a fixation map of each original image
-            they are matrices of zeros (NON-fixated pixels) and 255's (fixated
-            pixels). They can have different file format (jpg, jpeg, png,...)
-
-        - SALIENCY_MAPS : contains saliency maps of each original image
-            they are generated from human data. They can have different file
-            format (jpg, jpeg, png,...)
-            
-________________________________________________________________________________
-
-## How to use FixaTons (with python)
+Images: *The images can be download via bash scripts.*<br/>
+Videos: *https://www.crcv.ucf.edu/data/UCF_Sports_Action.php.*<br/>
 
 
-For an easy use of the dataset, python software is provided. This tools help you in different tasks:
+II. Scripts:<br/>
 
-    - List information
-    - Get data (matrices)
-    - Visualize data
-    - Compute metrics
-    - Compute statistics
+1. How to execute it<br/>
 
-For some example codes, please refer to the correspondent report or Tutorial.ipynb (jupiter notebook) https://github.com/dariozanca/FixaTons/blob/master/Tutorial.ipynb.
+@caution: The code only can execute under conda envionment or virtual environment, otherwise,
+it will cause errors. Pytorch only works under the virtual environment.<br/>
 
+option 1: <br/>
+
+*source ~/.bashrc *: (base) this conda environment.<br/>
+*conda deactivate *: quit conda environment. <br/>
+
+
+option 2:<br/>
+
+cd virutal environment. <br/>
+*python3 -m venv pytorch-BioMulti-L-NL* <br/>  
+*source pytorch-BioMulti-L-NL/bin/activate* <br/>
+*deactivate* <br/>
+
+Run *InstallDepedendent.sh* to download and install dependent toolboxes.<br/>
+Run* main.sh* to execute main funtion.<br/>
+
+#### Python Beta Version
+
+The beta version running environment same with alpha version.<br/>
+
+*python main.py *for image saliency prediction<br/>
+*python main_spatial_temporal.py *for video saliency prediction<br/>
+
+
+####Requierment toolboxes(see requirements.txt):
+
+opencv<br/>
+numpy<br/>
+NeuroTools<br/>
+statsmodels<br/>
+pyrtools<br/>
+MotionClouds<br/>
+tensorflow<br/>
+pytorch<br/>
+PyWavelets<br/>
+colour-science<br/>
+scipy<br/>
+opencv<br/>
+SLIP<br/>
+PyTorchSteerablePyramid<br/>
+PIL<br/>
+tqdm<br/>
+LogGabor<br/>
+nt_toolbox<br/>
+
+
+#### Evaluation Metrics with MatLab
+
+<p>This is a fork of official MIT metrics code from https://github.com/cvzoya/saliency.<br/>
+Various code related to the MIT saliency benchmark website http://saliency.mit.edu will be found there. Please contact saliency@mit.edu with any questions. If you use any of this code, please cite paper:</p>
+
+```
+@article{salMetrics_Bylinskii,
+    title    = {What do different evaluation metrics tell us about saliency models?},
+    author   = {Zoya Bylinskii and Tilke Judd and Aude Oliva and Antonio Torralba and Fr{\'e}do Durand},
+    journal  = {arXiv preprint arXiv:1604.03605},
+    year     = {2016}
+}
+```
+
+```
+@article{sal_eval_toolbox,
+    Author = {Mengyang Feng},
+    Title = {Evaluation Toolbox for Salient Object Detection.},
+    Journal = {https://github.com/ArcherFMY/sal_eval_toolbox},
+    Year = {2018}
+}
+```
+
+### If you think this project can help you or you can use something from this project then please consider cite our paper:
+
+```
+```
+ 
+
+### If you have any question, please contact me.
+----------------------------------------------------------------------
+Permission to use, copy, or modify this software and its documentation
+for educational and research purposes only and without fee is here
+granted, provided that this copyright notice and the original authors'
+names appear on all copies and supporting documentation. This program
+shall not be used, rewritten, or adapted as the basis of a commercial
+software or hardware product without first obtaining permission of the
+authors. The authors make no representations about the suitability of
+this software for any purpose. It is provided "as is" without express
+or implied warranty.
+
+@Copyright(c) QiangLi, 2020, Valencia, Spain.
