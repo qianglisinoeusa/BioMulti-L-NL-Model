@@ -43,4 +43,5 @@ Step5: Under the caffe folder, run
 	a. use MATLAB2016a
 	b. https://github.com/meixiaofeng/caffe/commit/cea9181d6794cc338857483d1692ed387a0f75a9?branch=cea9181d6794cc338857483d1692ed387a0f75a9&diff=split (This works for me!!!!!)
 	
+MY CAFFE WITH OWN CONFIGURE CAN BE DOWNLOAD AT: https://drive.google.com/file/d/1uKuzjDqvg49iRKl9QSJr0bw8B3-Ka9_x/view?usp=sharing.
 
