@@ -25,3 +25,11 @@ salloc -n 56
 srun --pty -x11 -p LADON -t 200:00:00 --mem 250000M  bash 
 
 matlab -nodsiplay -nosplash -r 
+
+matlab -nodesktop -r  
+matlab -nojvm -r
+
+
+#Help docs
+
+https://rcc.uchicago.edu/docs/running-jobs/array/index.html
