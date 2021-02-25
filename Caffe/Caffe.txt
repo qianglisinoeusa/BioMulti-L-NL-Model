@@ -1,0 +1,46 @@
+Caffe for Matlab
+
+Step1: check gcc version with:  dpkg -l | grep gcc | awk '{print $2}'
+Step2: check my gcc/g++ version with : gcc --version/g++ --version
+Step3: switch gcc/g++ version to 6.x.x for make matcaffe under caffe path
+
+	sudo apt update
+	sudo apt install gcc-6
+	sudo apt install g++-6
+	
+	# Add GCC 6 as an alternative for GCC
+	sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 1
+	sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 1
+	
+	# Check gcc and g++ version
+	gcc --version
+	g++ --version
+	
+	#Now, you already changed gcc/g++ version from gcc-7.5 to gcc-6.5
+
+	#Once you're done with "making", you can remove the installed GCC 6.3
+
+	sudo apt purge gcc-6
+	sudo apt autoremove --purge 
+	
+	#Fix the symlink for /usr/bin/gcc.
+	#ln -sf /usr/bin/gcc-7 /usr/bin/gcc
+
+
+Step4: If you have multiple gcc/g++ in your computer, you can switch with follow command line:
+	
+	sudo update-alternatives --config gcc
+	sudo update-alternatives --config g++
+
+Step5: Under the caffe folder, run
+	
+	make all matcaffe
+	
+	make mattest 
+	
+	you maybe will have problem with make mattest. The way to correct it:
+	
+	a. use MATLAB2016a
+	b. https://github.com/meixiaofeng/caffe/commit/cea9181d6794cc338857483d1692ed387a0f75a9?branch=cea9181d6794cc338857483d1692ed387a0f75a9&diff=split (This works for me!!!!!)
+	
+
