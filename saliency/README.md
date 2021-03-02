@@ -107,9 +107,15 @@ Various code related to the MIT saliency benchmark website http://saliency.mit.e
 ### If you think this project can help you or you can use something from this project then please consider cite our paper:
 
 ```
+@misc{li2021hvsoriented,
+      title={An HVS-Oriented Saliency Map Prediction Model}, 
+      author={Qiang Li},
+      year={2021},
+      eprint={2011.04076},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
 ```
- 
-
 ### If you have any question, please contact me.
 ----------------------------------------------------------------------
 Permission to use, copy, or modify this software and its documentation
