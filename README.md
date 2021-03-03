@@ -95,8 +95,9 @@ nt_toolbox<br/>
 
 ### If you think this project can help you or you can use something from this project then please consider cite below related paper:
 
+
 ```
-@article{article,
+@article{Alex20,
 author = {Gomez-Villa, Alex and Bertalmío, Marcelo and Malo, Jesús},
 year = {2020},
 month = {03},
@@ -106,11 +107,11 @@ volume = {123},
 journal = {Journal of Neurophysiology},
 doi = {10.1152/jn.00487.2019}
 }
-
 ```
 
+
 ```
-@article{article,
+@article{Marina17,
 author = {Martinez-Garcia, Marina and Cyriac, Praveen and Batard, Thomas and Bertalmío, Marcelo and Malo, Jesús},
 year = {2017},
 month = {11},
@@ -124,7 +125,7 @@ doi = {10.1371/journal.pone.0201326}
 
 
 ```
-@InProceedings{10.1007/978-3-030-59277-6_30,
+@InProceedings{Qiang20,
 author="Li, Qiang and Malo, Jesus",
 title="Canonical Retina-to-Cortex Vision Model Ready for Automatic Differentiation",
 booktitle="Brain Informatics",
