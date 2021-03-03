@@ -93,7 +93,35 @@ nt_toolbox<br/>
 
 ###The parameters still can optimize in the future.
 
-### If you think this project can help you or you can use something from this project then please consider cite our paper:
+### If you think this project can help you or you can use something from this project then please consider cite below related paper:
+
+```
+@article{article,
+author = {Gomez-Villa, Alex and Bertalmío, Marcelo and Malo, Jesús},
+year = {2020},
+month = {03},
+pages = {},
+title = {Visual Information flow in Wilson-Cowan networks},
+volume = {123},
+journal = {Journal of Neurophysiology},
+doi = {10.1152/jn.00487.2019}
+}
+
+```
+
+```
+@article{article,
+author = {Martinez-Garcia, Marina and Cyriac, Praveen and Batard, Thomas and Bertalmío, Marcelo and Malo, Jesús},
+year = {2017},
+month = {11},
+pages = {},
+title = {Derivatives and Inverse of Cascaded Linear+Nonlinear Neural Models},
+volume = {13},
+journal = {PLoS ONE},
+doi = {10.1371/journal.pone.0201326}
+}
+```
+
 
 ```
 @InProceedings{10.1007/978-3-030-59277-6_30,
