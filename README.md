@@ -45,15 +45,18 @@ performance Computer(HPC) with big framework architecture(C/C++/Java).</p>
 	*deactivate* <br/>
 
 
-	Run *InstallDepedendent.sh *to download and install dependent toolboxes.<br/>
-	Run *main.sh* to execute main funtion.<br/>
+	Run <b>InstallDepedendent.sh</b>to download and install dependent toolboxes.<br/>
+	Run <b>main.sh</b> to execute main funtion.<br/>
 
 ### Python Beta Version
 
 The beta version running environment same with alpha version.<br/>
 
-Run* main.sh* under bash environment.<br/>
+Run <b>main.sh</b> under bash environment.<br/>
 
+### Python Beta Version L+NL model parameters optimization
+
+The model parameters optimization can be done with Jacobian respect each parameters. The main function that implemented with <b>jacobian.py</b> and <b>optimization.py</b>. 
 
 ### Requierment toolboxes(see requirements.txt):
 
