@@ -56,7 +56,10 @@ Run <b>main.sh</b> under bash environment.<br/>
 
 ### Python Beta Version L+NL model parameters optimization
 
-The model parameters optimization can be done with Jacobian respect each parameters. The main function that implemented with <b>jacobian.py</b> and <b>optimization.py</b>. 
+The model parameters optimization can be done with Jacobian respect each parameters. The main function that implemented with <b>jacobian.py</b> and <b>optimization.py</b>.  The demo of how to optimization parameters in the model, please check here:
+
+https://github.com/matthias-k/pysaliency/tree/master/pysaliency.
+
 
 ### Requierment toolboxes(see requirements.txt):
 
