@@ -67,3 +67,11 @@ sudo pip3 install sliding_window
 
 echo '===============================' \n
 echo 'dependent toolbox install done' 
+
+
+
+############################################################################
+# Change gcc and g++ version
+############################################################################
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 7
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 7
