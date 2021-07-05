@@ -1,0 +1,20 @@
+#To add an SSH key pair, first, create a hidden folder to your user account home directory on your cloud server with the following command.
+
+mkdir -p ~/.ssh
+
+#Then restrict the permissions to that directory to just yourself with the command below.
+
+chmod 700 ~/.ssh
+
+#Generate a new key pair in a terminal with the next command and set your password
+
+ssh-keygen -t rsa
+
+# Copy the public half of the key pair to your cloud server using the following command
+# Replace the user and server with your username and the server address you wish to use the key authentication on.
+
+ssh-copy-id -i ~/.ssh/id_rsa.pub user@server
+
+# Try loginto with ssh
+
+ssh user@server   
