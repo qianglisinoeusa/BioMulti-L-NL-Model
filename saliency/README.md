@@ -1,4 +1,4 @@
-### An HVS-Oriented Saliency Map Prediction Model
+### A Psychophysical Oriented Saliency Map Prediction Model
 
 <center>
 <img width=1000 height=350 src='imgs/MIT1003.png'><br/>
