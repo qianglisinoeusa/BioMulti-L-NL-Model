@@ -12,9 +12,11 @@ hs.ax1.Title.String='Input Image';
 hs.ax1.Title.FontName='Yu Gothic UI Light';
 %RGB色空間で3D表示
 %Use RGB color gamut as a default
-colorcloud(img,'rgb','Parent',hs.ui);
+colorcloud(img,'rgb','Parent',hs.ui,'BackgroundColor', 'w');
+set(gcf, 'color', 'w')
 hs.ui.Title = '3D Color Gamut';
 hs.ui.FontName='Yu Gothic UI Light';
+set(gcf, 'color', 'w')
 %% RGB > xyz変換
 %Convert RGB to CIE 1931 XYZ
 XYZ = rgb2xyz(img);
@@ -25,7 +27,8 @@ sY = XYZ(:,2) ./ (XYZ(:,1) + XYZ(:,2) + XYZ(:,3));
 sZ = XYZ(:,3) ./ (XYZ(:,1) + XYZ(:,2) + XYZ(:,3));
 %% XY色度で表現できる範囲を可視化
 % Load spectral locus xy values at 1-nm intervals and plot it
-load('locus.mat')
+load('locus1cd.mat', 'T')
+locus=T; clear T;
 plotLineWidth = 2;
 plot(locus(:,1),locus(:,2),'k','LineWidth',plotLineWidth,'Parent',hs.ax2);
 grid(hs.ax2, 'on')
@@ -33,9 +36,11 @@ hold(hs.ax2, 'on')
 axis([0.0 0.85 0.0 0.85])
 xlabel('x')
 ylabel('y')
+set(gcf, 'color', 'w')
 % non-spectralな領域をプロット
 % plot the non-spectral locus
 plot(hs.ax2, [locus(1,1) locus(end,1)], [locus(1,2) locus(end,2)],'k','LineWidth',plotLineWidth)
+set(gcf, 'color', 'w')
 %% xy色度図内の色分布をテーブルとして作成
 % Create table for color reproduction on chromaticity diagram
 xy4rgb = createChromaticityTable;
@@ -70,6 +75,8 @@ end
 scatter(xy(:,1), xy(:,2), [], clr,'.','Parent',hs.ax2)
 hs.ax2.Title.String='Chromaticity Diagram';
 hs.ax2.Title.FontName='Yu Gothic UI Light';
+set(gcf, 'color', 'w')
+
 %% Supporting Functions
     %結果表示用オブジェクトの生成
     % Add the UI components
