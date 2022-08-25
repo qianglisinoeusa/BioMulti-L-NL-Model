@@ -1,4 +1,4 @@
-### A Psychophysical Oriented Saliency Map Prediction Model
+### A Psychophysically Oriented Saliency Map Prediction Model
 
 <center>
 <img width=1000 height=350 src='imgs/MIT1003.png'><br/>
@@ -108,7 +108,7 @@ Various code related to the MIT saliency benchmark website http://saliency.mit.e
 
 ```
 @misc{li2021hvsoriented,
-      title={A Psychophysical Oriented Saliency Map Prediction Model}, 
+      title={A Psychophysically Oriented Saliency Map Prediction Model}, 
       author={Qiang Li},
       year={2021},
       eprint={2011.04076},
